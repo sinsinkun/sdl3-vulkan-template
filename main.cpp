@@ -1,5 +1,8 @@
 #define SDL_MAIN_USE_CALLBACKS
-#include "main.hpp"
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h>
+
+#include "src/app.hpp"
 
 using namespace App;
 
@@ -10,7 +13,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   *appstate = new AppState;
   AppState& state = *static_cast<AppState*>(*appstate);
 
-  if (!SDL_Init(SDL_INIT_VIDEO)) {
+  if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
     SDL_Log("SDL_Init(SDL_INIT_VIDEO) failed: %s", SDL_GetError());
     return SDL_APP_FAILURE;
   }
@@ -30,11 +33,11 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   SDL_SetWindowMinimumSize(state.window, 400, 300);
 
   state.gpu = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV, true, NULL);
-  if (!state.window) {
+  if (!state.gpu) {
     SDL_Log("SDL_CreateGPUDevice() failed: %s", SDL_GetError());
     return SDL_APP_FAILURE;
   }
-  SDL_Log("GPU device initialized");
+  SDL_Log("GPU device initialized: %s", SDL_GetGPUDeviceDriver(state.gpu));
 
   bool claimed = SDL_ClaimWindowForGPUDevice(state.gpu, state.window);
   if (!claimed) {
@@ -43,7 +46,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   }
   SDL_Log("Claimed window for GPU device");
 
-  // TODO: prepare GPU assets
+  state.renderer = new RenderInstance(state.window, state.gpu);
 
   return SDL_APP_CONTINUE;
 }
@@ -73,12 +76,16 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 SDL_AppResult SDL_AppIterate(void *appstate) {
   AppState& state = *static_cast<AppState*>(appstate);
   
+  state.renderer->renderToScreen();
   return SDL_APP_CONTINUE;
 }
 
 // clean up on exit
 void SDL_AppQuit(void *appstate, SDL_AppResult result) {
   AppState& state = *static_cast<AppState*>(appstate);
+  state.renderer->destroy();
+  delete state.renderer;
+  SDL_ReleaseWindowFromGPUDevice(state.gpu, state.window);
   SDL_DestroyGPUDevice(state.gpu);
   SDL_DestroyWindow(state.window);
   SDL_Quit();
