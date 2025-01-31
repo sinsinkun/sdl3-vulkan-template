@@ -27,12 +27,15 @@ SDL_GPUShader* loadShader(
 	const char *entrypoint;
 
   if (backendFormats & SDL_GPU_SHADERFORMAT_SPIRV) {
+		SDL_snprintf(fullPath, sizeof(fullPath), "shaders/compiled/SPIRV/%s.spv", filename);
 		format = SDL_GPU_SHADERFORMAT_SPIRV;
 		entrypoint = "main";
 	} else if (backendFormats & SDL_GPU_SHADERFORMAT_MSL) {
+		SDL_snprintf(fullPath, sizeof(fullPath), "shaders/compiled/MSL/%s.msl", filename);
 		format = SDL_GPU_SHADERFORMAT_MSL;
 		entrypoint = "main0";
 	} else if (backendFormats & SDL_GPU_SHADERFORMAT_DXIL) {
+		SDL_snprintf(fullPath, sizeof(fullPath), "shaders/compiled/DXIL/%s.dxil", filename);
 		format = SDL_GPU_SHADERFORMAT_DXIL;
 		entrypoint = "main";
 	} else {
@@ -70,7 +73,9 @@ SDL_GPUShader* loadShader(
 }
 
 SDL_GPUGraphicsPipeline* createPipeline(
-	SDL_GPUDevice *device, SDL_GPUShader *vertShader, SDL_GPUShader *fragShader
+	SDL_GPUDevice *device,
+	SDL_GPUShader *vertShader,
+	SDL_GPUShader *fragShader
 ) {
 	SDL_GPUGraphicsPipelineCreateInfo createInfo{};
 	createInfo.vertex_shader = vertShader;
@@ -82,10 +87,10 @@ RenderInstance::RenderInstance(SDL_Window *window, SDL_GPUDevice *gpu) {
   win = window;
   device = gpu;
   // create shaders
-  vertShader = loadShader(device, "shaders/test.vert", 0, 0, 0, 0);
-  fragShader = loadShader(device, "shaders/test.frag", 0, 0, 0, 0);
+  vertShader = loadShader(device, "test.vert", 0, 0, 0, 0);
+  fragShader = loadShader(device, "test.frag", 0, 0, 0, 0);
   // create pipeline
-  // pipeline = createPipeline(device, vertShader, fragShader);
+  pipeline = createPipeline(device, vertShader, fragShader);
 }
 
 void RenderInstance::renderToTexture() {
@@ -112,13 +117,20 @@ void RenderInstance::renderToScreen() {
 	colorTarget.clear_color = SDL_FColor{ 0.08f, 0.02f, 0.2f, 1.0f };
 	std::vector <SDL_GPUColorTargetInfo> colorTargets{colorTarget};
 	SDL_GPURenderPass *pass = SDL_BeginGPURenderPass(cmdBuf, colorTargets.data(), colorTargets.size(), NULL);
-  // 3.1. SDL_BindGPUGraphicsPipeline
+
+  // bind pipeline to render
+	SDL_BindGPUGraphicsPipeline(pass, pipeline);
   // 3.2. SDL_SetGPUViewport
   // 3.3. SDL_BindGPUVertexBuffer
+	SDL_GPUBufferBinding binding{};
+	SDL_BindGPUVertexBuffers(pass, 0, &binding, 0);
   // 3.4. SDL_BindGPUVertexSamplers
+
   // 4. SDL_DrawGPUPrimitives
+	SDL_DrawGPUPrimitives(pass, 3, 1, 0, 0);
   // 4.1 SDL_DrawGPUPrimitivesIndirect
   // 4.2 SDL_DrawGPUIndexedPrimitivesIndirect
+
   // 5. SDL_EndGPURenderPass
 	SDL_EndGPURenderPass(pass);
   // 6. SDL_SubmitGPUCommandBuffer
