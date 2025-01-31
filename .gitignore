@@ -1,5 +1,8 @@
 assets/
 build/
 shaders/compiled
+shaders/DXIL
+shaders/MSL
+shaders/SPIRV
 
 SDL3.dll
