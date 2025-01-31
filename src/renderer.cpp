@@ -2,6 +2,7 @@
 
 using namespace App;
 
+// utility function from https://github.com/TheSpydog/SDL_gpu_examples/blob/main/Examples/Common.c
 SDL_GPUShader* loadShader(
   SDL_GPUDevice *device,
   const char* filename,
@@ -27,15 +28,15 @@ SDL_GPUShader* loadShader(
 	const char *entrypoint;
 
   if (backendFormats & SDL_GPU_SHADERFORMAT_SPIRV) {
-		SDL_snprintf(fullPath, sizeof(fullPath), "shaders/compiled/SPIRV/%s.spv", filename);
+		SDL_snprintf(fullPath, sizeof(fullPath), "assets/SPIRV/%s.spv", filename);
 		format = SDL_GPU_SHADERFORMAT_SPIRV;
 		entrypoint = "main";
 	} else if (backendFormats & SDL_GPU_SHADERFORMAT_MSL) {
-		SDL_snprintf(fullPath, sizeof(fullPath), "shaders/compiled/MSL/%s.msl", filename);
+		SDL_snprintf(fullPath, sizeof(fullPath), "assets/MSL/%s.msl", filename);
 		format = SDL_GPU_SHADERFORMAT_MSL;
 		entrypoint = "main0";
 	} else if (backendFormats & SDL_GPU_SHADERFORMAT_DXIL) {
-		SDL_snprintf(fullPath, sizeof(fullPath), "shaders/compiled/DXIL/%s.dxil", filename);
+		SDL_snprintf(fullPath, sizeof(fullPath), "assets/DXIL/%s.dxil", filename);
 		format = SDL_GPU_SHADERFORMAT_DXIL;
 		entrypoint = "main";
 	} else {
