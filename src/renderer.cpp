@@ -182,17 +182,15 @@ void RenderInstance::uploadVertices(std::vector<RenderVertex> verts) {
 
 void RenderInstance::uploadVertices(std::vector<RenderVertex> verts, std::vector<Uint16> indices) {
 	// create vertex buffer
-	SDL_ReleaseGPUBuffer(device, vertexBuffer);
 	Uint32 vSize = sizeof(RenderVertex) * verts.size();
-	vertexBuffer = SDL_CreateGPUBuffer(device, new SDL_GPUBufferCreateInfo {
+	SDL_GPUBuffer *vBuffer = SDL_CreateGPUBuffer(device, new SDL_GPUBufferCreateInfo {
 		.usage = SDL_GPU_BUFFERUSAGE_VERTEX,
 		.size = vSize
 	});
 
 	// create index buffer
-	SDL_ReleaseGPUBuffer(device, indexBuffer);
 	Uint32 iSize = sizeof(Uint16) * indices.size();
-	indexBuffer = SDL_CreateGPUBuffer(device, new SDL_GPUBufferCreateInfo{
+	SDL_GPUBuffer *iBuffer = SDL_CreateGPUBuffer(device, new SDL_GPUBufferCreateInfo {
 		.usage = SDL_GPU_BUFFERUSAGE_INDEX,
 		.size = iSize
 	});
@@ -240,7 +238,7 @@ void RenderInstance::uploadVertices(std::vector<RenderVertex> verts, std::vector
 			.offset = 0,
 		},
 		new SDL_GPUBufferRegion {
-			.buffer = vertexBuffer,
+			.buffer = vBuffer,
 			.offset = 0,
 			.size = vSize,
 		},
@@ -254,12 +252,20 @@ void RenderInstance::uploadVertices(std::vector<RenderVertex> verts, std::vector
 			.offset = 0,
 		},
 		new SDL_GPUBufferRegion {
-			.buffer = indexBuffer,
+			.buffer = iBuffer,
 			.offset = 0,
 			.size = iSize,
 		},
 		false
 	);
+
+	RenderObject newObject = {
+		.vertexBuffer = vBuffer,
+		.indexBuffer = iBuffer,
+		.vertexCount = verts.size(),
+		.indexCount = indices.size(),
+	};
+	renderObjects.push_back(newObject);
 
 	// clean up passes
 	SDL_EndGPUCopyPass(copyPass);
@@ -291,14 +297,16 @@ int RenderInstance::renderToScreen() {
 
   // bind pipeline to render
 	SDL_BindGPUGraphicsPipeline(pass, pipeline);
-	// SDL_PushGPUVertexUniformData();
-	SDL_BindGPUVertexBuffers(pass, 0, new SDL_GPUBufferBinding{vertexBuffer, 0 }, 1);
-	// 4. Draw to screen
-	if (indexBuffer != NULL) {
-		SDL_BindGPUIndexBuffer(pass, new SDL_GPUBufferBinding {indexBuffer, 0 }, SDL_GPU_INDEXELEMENTSIZE_16BIT);
-		SDL_DrawGPUIndexedPrimitives(pass, 6, 1, 0, 0, 0);
-	} else {
-		SDL_DrawGPUPrimitives(pass, 3, 1, 0, 0);
+	for (RenderObject obj : renderObjects) {
+		// todo: handle uniforms + storage buffers
+		// todo: handle textures + samplers
+		SDL_BindGPUVertexBuffers(pass, 0, new SDL_GPUBufferBinding{obj.vertexBuffer, 0}, 1);
+		if (obj.indexBuffer != NULL) {
+			SDL_BindGPUIndexBuffer(pass, new SDL_GPUBufferBinding{obj.indexBuffer, 0}, SDL_GPU_INDEXELEMENTSIZE_16BIT);
+			SDL_DrawGPUIndexedPrimitives(pass, obj.indexCount, 1, 0, 0, 0);
+		} else {
+			SDL_DrawGPUPrimitives(pass, obj.vertexCount, 1, 0, 0);
+		}
 	}
 
 	// finish render pass
@@ -312,8 +320,11 @@ int RenderInstance::renderToScreen() {
 }
 
 void RenderInstance::destroy() {
-	SDL_ReleaseGPUBuffer(device, vertexBuffer);
-	SDL_ReleaseGPUBuffer(device, indexBuffer);
+	for (RenderObject obj : renderObjects) {
+		SDL_ReleaseGPUBuffer(device, obj.vertexBuffer);
+		SDL_ReleaseGPUBuffer(device, obj.indexBuffer);
+	}
+	renderObjects.clear();
   SDL_ReleaseGPUGraphicsPipeline(device, pipeline);
 }
 

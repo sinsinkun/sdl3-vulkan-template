@@ -10,21 +10,26 @@ namespace App {
     float u, v;
     float nx, ny, nz;
   };
+  class RenderObject {
+  public:
+    SDL_GPUBuffer *vertexBuffer = NULL;
+    SDL_GPUBuffer *indexBuffer = NULL;
+    int vertexCount = 0;
+    int indexCount = 0;
+  };
   class RenderInstance {
   public:
     RenderInstance(SDL_Window* window, SDL_GPUDevice *gpu);
     SDL_Window *win;
     SDL_GPUDevice *device;
     SDL_GPUGraphicsPipeline *pipeline = NULL;
-    SDL_GPUBuffer *vertexBuffer = NULL;
-    SDL_GPUBuffer *indexBuffer = NULL;
-    SDL_GPUTexture *srcTexture = NULL;
-    SDL_GPUTexture *dstTexture = NULL;
-    SDL_GPUSampler *sampler = NULL;
+    // int addRenderObject();
+    // void updateRenderObject();
     // int renderToTexture();
     int renderToScreen();
     void destroy();
   private:
+    std::vector<RenderObject> renderObjects;
     void uploadVertices(std::vector<RenderVertex> verts);
     void uploadVertices(std::vector<RenderVertex> verts, std::vector<Uint16> indices);
   };
