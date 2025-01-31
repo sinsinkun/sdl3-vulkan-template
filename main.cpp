@@ -24,7 +24,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     SDL_VERSIONNUM_MICRO(SDL_VERSION)
   );
 
-  state.window = SDL_CreateWindow("SDL3 Vulkan", 800, 600, SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN);
+  state.window = SDL_CreateWindow("SDL3 Vulkan", 800, 600, SDL_WINDOW_RESIZABLE);
   if (!state.window) {
     SDL_Log("SDL_CreateWindow() failed: %s", SDL_GetError());
     return SDL_APP_FAILURE;
@@ -75,6 +75,18 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 // update/render loop
 SDL_AppResult SDL_AppIterate(void *appstate) {
   AppState& state = *static_cast<AppState*>(appstate);
+
+  // calculate FPS
+  Uint64 newTime = SDL_GetTicks();
+  Uint64 delta = newTime - state.lifetime;
+  state.lifetime = SDL_GetTicks();
+  if (delta != 0 && state.timeSinceLastFps > 1000) {
+    state.timeSinceLastFps = 0;
+    float fps = 1000.0f / delta;
+    SDL_Log("FPS: %.2f", fps);
+  } else {
+    state.timeSinceLastFps += delta;
+  }
   
   int err = state.renderer->renderToScreen();
   if (err != 0) {
