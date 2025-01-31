@@ -73,32 +73,203 @@ SDL_GPUShader* loadShader(
   return shader;
 }
 
+// create vertex input state corresponding to RenderVertex shape
+SDL_GPUVertexInputState createVertexInputState() {
+	SDL_GPUVertexInputState state;
+
+	state.vertex_buffer_descriptions = new SDL_GPUVertexBufferDescription {
+		.slot = 0,
+		.pitch = sizeof(RenderVertex),
+		.input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
+		.instance_step_rate = 0,
+	};
+	state.num_vertex_buffers = 1;
+	
+	SDL_GPUVertexAttribute vAttr0 = {
+		.location = 0,
+		.buffer_slot = 0,
+		.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+		.offset = 0,
+	};
+	SDL_GPUVertexAttribute vAttr1 = {
+		.location = 1,
+		.buffer_slot = 0,
+		.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
+		.offset = 0,
+	};
+	SDL_GPUVertexAttribute vAttr2 = {
+		.location = 2,
+		.buffer_slot = 0,
+		.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+		.offset = 0,
+	};
+	state.vertex_attributes = new SDL_GPUVertexAttribute[3] {
+		vAttr0, vAttr1, vAttr2
+	};
+	state.num_vertex_attributes = 3;
+
+	return state;
+}
+
+// helper for creating pipeline
 SDL_GPUGraphicsPipeline* createPipeline(
+	SDL_Window *window,
 	SDL_GPUDevice *device,
 	SDL_GPUShader *vertShader,
-	SDL_GPUShader *fragShader
+	SDL_GPUShader *fragShader,
+	GPUPrimitiveType primitiveType
 ) {
 	SDL_GPUGraphicsPipelineCreateInfo createInfo{};
 	createInfo.vertex_shader = vertShader;
 	createInfo.fragment_shader = fragShader;
+
+	createInfo.target_info = SDL_GPUGraphicsPipelineTargetInfo {
+		.color_target_descriptions = new SDL_GPUColorTargetDescription {
+			.format = SDL_GetGPUSwapchainTextureFormat(device, window),
+		},
+		.num_color_targets = 1,
+	};
+
+	createInfo.vertex_input_state = createVertexInputState();
+	
+	switch (primitiveType) {
+		case GPUPrimitiveType::Point:
+			createInfo.primitive_type = SDL_GPU_PRIMITIVETYPE_POINTLIST;
+			break;
+		case GPUPrimitiveType::Line:
+			createInfo.primitive_type = SDL_GPU_PRIMITIVETYPE_LINELIST;
+			createInfo.rasterizer_state.fill_mode = SDL_GPU_FILLMODE_FILL;
+			break;
+		default:
+			createInfo.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST;
+			createInfo.rasterizer_state.fill_mode = SDL_GPU_FILLMODE_FILL;
+			break;
+	}
+
 	return SDL_CreateGPUGraphicsPipeline(device, &createInfo);
 }
+
+#pragma region RenderInstance
 
 RenderInstance::RenderInstance(SDL_Window *window, SDL_GPUDevice *gpu) {
   win = window;
   device = gpu;
   // create shaders
-  vertShader = loadShader(device, "test.vert", 0, 0, 0, 0);
-  fragShader = loadShader(device, "test.frag", 0, 0, 0, 0);
+  SDL_GPUShader *vertShader = loadShader(device, "test.vert", 0, 0, 0, 0);
+  SDL_GPUShader *fragShader = loadShader(device, "test.frag", 0, 0, 0, 0);
   // create pipeline
-  pipeline = createPipeline(device, vertShader, fragShader);
+  pipeline = createPipeline(win, device, vertShader, fragShader, GPUPrimitiveType::Triangle);
+
+	// create vertices
+	std::vector<RenderVertex> vertices;
+	// x, y, z, u, v, nx, ny, nz
+	vertices.push_back(RenderVertex{ -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0, 0.0, 1.0 });
+	vertices.push_back(RenderVertex{  0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0, 0.0, 1.0 });
+	vertices.push_back(RenderVertex{  0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0, 0.0, 1.0 });
+	vertices.push_back(RenderVertex{ -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0, 0.0, 1.0 });
+	std::vector<Uint16> indices = { 0, 1, 2, 0, 2, 3 };
+	uploadVertices(vertices, indices);
+
+	// release shaders
+	SDL_ReleaseGPUShader(device, vertShader);
+  SDL_ReleaseGPUShader(device, fragShader);
 }
 
-void RenderInstance::renderToTexture() {
-  // todo: render steps
+void RenderInstance::uploadVertices(std::vector<RenderVertex> verts) {
+	std::vector<Uint16> none;
+	uploadVertices(verts, none);
 }
 
-void RenderInstance::renderToScreen() {
+void RenderInstance::uploadVertices(std::vector<RenderVertex> verts, std::vector<Uint16> indices) {
+	// create vertex buffer
+	SDL_ReleaseGPUBuffer(device, vertexBuffer);
+	Uint32 vSize = sizeof(RenderVertex) * verts.size();
+	vertexBuffer = SDL_CreateGPUBuffer(device, new SDL_GPUBufferCreateInfo {
+		.usage = SDL_GPU_BUFFERUSAGE_VERTEX,
+		.size = vSize
+	});
+
+	// create index buffer
+	SDL_ReleaseGPUBuffer(device, indexBuffer);
+	Uint32 iSize = sizeof(Uint16) * indices.size();
+	indexBuffer = SDL_CreateGPUBuffer(device, new SDL_GPUBufferCreateInfo{
+		.usage = SDL_GPU_BUFFERUSAGE_INDEX,
+		.size = iSize
+	});
+
+	// pump vertex data into transfer buffer
+	SDL_GPUTransferBuffer *vertTransferBuf = SDL_CreateGPUTransferBuffer(
+		device,
+		new SDL_GPUTransferBufferCreateInfo {
+			.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
+			.size = vSize,
+		}
+	);
+	RenderVertex* vertData = static_cast<RenderVertex*>(SDL_MapGPUTransferBuffer(
+		device, vertTransferBuf, false
+	));
+	for (int i=0; i < verts.size(); i++) {
+		vertData[i] = verts.at(i);
+	}
+	SDL_UnmapGPUTransferBuffer(device, vertTransferBuf);
+
+	// pump index data into transfer buffer
+	SDL_GPUTransferBuffer *idxTransferBuf = SDL_CreateGPUTransferBuffer(
+		device,
+		new SDL_GPUTransferBufferCreateInfo {
+			.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
+			.size = iSize,
+		}
+	);
+	Uint16* indexData = static_cast<Uint16*>(SDL_MapGPUTransferBuffer(
+		device, idxTransferBuf, false
+	));
+	for (int i=0; i < indices.size(); i++) {
+		indexData[i] = indices.at(i);
+	}
+	SDL_UnmapGPUTransferBuffer(device, idxTransferBuf);
+
+	// create cmd buffer + copy pass
+	SDL_GPUCommandBuffer *cmdBuf = SDL_AcquireGPUCommandBuffer(device);
+	SDL_GPUCopyPass *copyPass = SDL_BeginGPUCopyPass(cmdBuf);
+
+	SDL_UploadToGPUBuffer(
+		copyPass,
+		new SDL_GPUTransferBufferLocation {
+			.transfer_buffer = vertTransferBuf,
+			.offset = 0,
+		},
+		new SDL_GPUBufferRegion {
+			.buffer = vertexBuffer,
+			.offset = 0,
+			.size = vSize,
+		},
+		false
+	);
+
+	SDL_UploadToGPUBuffer(
+		copyPass,
+		new SDL_GPUTransferBufferLocation {
+			.transfer_buffer = idxTransferBuf,
+			.offset = 0,
+		},
+		new SDL_GPUBufferRegion {
+			.buffer = indexBuffer,
+			.offset = 0,
+			.size = iSize,
+		},
+		false
+	);
+
+	// clean up passes
+	SDL_EndGPUCopyPass(copyPass);
+	SDL_SubmitGPUCommandBuffer(cmdBuf);
+	// clean up transfer buffers
+	SDL_ReleaseGPUTransferBuffer(device, vertTransferBuf);
+	SDL_ReleaseGPUTransferBuffer(device, idxTransferBuf);
+}
+
+int RenderInstance::renderToScreen() {
   // todo: render steps
   // 1. SDL_AcquireGPUCommandBuffer
 	SDL_GPUCommandBuffer *cmdBuf = SDL_AcquireGPUCommandBuffer(device);
@@ -106,42 +277,44 @@ void RenderInstance::renderToScreen() {
 	SDL_GPUTexture* swapchain = NULL;
 	SDL_WaitAndAcquireGPUSwapchainTexture(cmdBuf, win, &swapchain, NULL, NULL);
 	if (swapchain == NULL) {
-		SDL_Log("Failed to obtain swapchain");
+		SDL_Log("Failed to obtain swapchain: %s", SDL_GetError());
 		SDL_SubmitGPUCommandBuffer(cmdBuf);
-		return;
+		return 1;
 	}
   // 3. SDL_BeginGPURenderPass
-	SDL_GPUColorTargetInfo colorTarget{};
+	SDL_GPUColorTargetInfo colorTarget{ 0 };
 	colorTarget.texture = swapchain;
 	colorTarget.store_op = SDL_GPU_STOREOP_STORE;
 	colorTarget.load_op = SDL_GPU_LOADOP_CLEAR;
-	colorTarget.clear_color = SDL_FColor{ 0.08f, 0.02f, 0.2f, 1.0f };
-	std::vector <SDL_GPUColorTargetInfo> colorTargets{colorTarget};
-	SDL_GPURenderPass *pass = SDL_BeginGPURenderPass(cmdBuf, colorTargets.data(), colorTargets.size(), NULL);
+	colorTarget.clear_color = SDL_FColor{ 0.04f, 0.04f, 0.08f, 1.0f };
+	SDL_GPURenderPass *pass = SDL_BeginGPURenderPass(cmdBuf, &colorTarget, 1, NULL);
 
   // bind pipeline to render
 	SDL_BindGPUGraphicsPipeline(pass, pipeline);
-  // 3.2. SDL_SetGPUViewport
-  // 3.3. SDL_BindGPUVertexBuffer
-	SDL_GPUBufferBinding binding{};
-	SDL_BindGPUVertexBuffers(pass, 0, &binding, 0);
-  // 3.4. SDL_BindGPUVertexSamplers
+	// SDL_PushGPUVertexUniformData();
+	SDL_BindGPUVertexBuffers(pass, 0, new SDL_GPUBufferBinding{vertexBuffer, 0 }, 1);
+	// 4. Draw to screen
+	if (indexBuffer != NULL) {
+		SDL_BindGPUIndexBuffer(pass, new SDL_GPUBufferBinding {indexBuffer, 0 }, SDL_GPU_INDEXELEMENTSIZE_16BIT);
+		SDL_DrawGPUIndexedPrimitives(pass, 6, 1, 0, 0, 0);
+	} else {
+		SDL_DrawGPUPrimitives(pass, 3, 1, 0, 0);
+	}
 
-  // 4. SDL_DrawGPUPrimitives
-	SDL_DrawGPUPrimitives(pass, 3, 1, 0, 0);
-  // 4.1 SDL_DrawGPUPrimitivesIndirect
-  // 4.2 SDL_DrawGPUIndexedPrimitivesIndirect
-
-  // 5. SDL_EndGPURenderPass
+	// finish render pass
 	SDL_EndGPURenderPass(pass);
-  // 6. SDL_SubmitGPUCommandBuffer
 	if (!SDL_SubmitGPUCommandBuffer(cmdBuf)) {
 		SDL_Log("Failed to submit GPU command %s", SDL_GetError());
+		return 2;
 	};
+
+	return 0;
 }
 
 void RenderInstance::destroy() {
-  SDL_ReleaseGPUShader(device, vertShader);
-  SDL_ReleaseGPUShader(device, fragShader);
+	SDL_ReleaseGPUBuffer(device, vertexBuffer);
+	SDL_ReleaseGPUBuffer(device, indexBuffer);
   SDL_ReleaseGPUGraphicsPipeline(device, pipeline);
 }
+
+#pragma endregion RenderInstance

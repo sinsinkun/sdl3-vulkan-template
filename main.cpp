@@ -76,7 +76,11 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 SDL_AppResult SDL_AppIterate(void *appstate) {
   AppState& state = *static_cast<AppState*>(appstate);
   
-  state.renderer->renderToScreen();
+  int err = state.renderer->renderToScreen();
+  if (err != 0) {
+    SDL_Log("Render to screen failure");
+    return SDL_APP_FAILURE;
+  }
   return SDL_APP_CONTINUE;
 }
 
