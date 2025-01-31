@@ -95,13 +95,13 @@ SDL_GPUVertexInputState createVertexInputState() {
 		.location = 1,
 		.buffer_slot = 0,
 		.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
-		.offset = 0,
+		.offset = sizeof(float) * 3,
 	};
 	SDL_GPUVertexAttribute vAttr2 = {
 		.location = 2,
 		.buffer_slot = 0,
 		.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-		.offset = 0,
+		.offset = sizeof(float) * 5,
 	};
 	state.vertex_attributes = new SDL_GPUVertexAttribute[3] {
 		vAttr0, vAttr1, vAttr2
@@ -163,10 +163,10 @@ RenderInstance::RenderInstance(SDL_Window *window, SDL_GPUDevice *gpu) {
 	// create vertices
 	std::vector<RenderVertex> vertices;
 	// x, y, z, u, v, nx, ny, nz
-	vertices.push_back(RenderVertex{ -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f });
-	vertices.push_back(RenderVertex{  0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f });
-	vertices.push_back(RenderVertex{  0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f });
-	vertices.push_back(RenderVertex{ -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f });
+	vertices.push_back(RenderVertex{ -0.8f,  0.8f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f });
+	vertices.push_back(RenderVertex{  0.8f,  0.8f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f });
+	vertices.push_back(RenderVertex{  0.8f, -0.8f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f });
+	vertices.push_back(RenderVertex{ -0.8f, -0.8f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f });
 	std::vector<Uint16> indices = { 0, 1, 2, 0, 2, 3 };
 	uploadVertices(vertices, indices);
 
