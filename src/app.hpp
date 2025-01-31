@@ -3,6 +3,7 @@
 #include <vector>
 #include <SDL3/SDL.h>
 
+#include "util.hpp"
 #include "renderer.hpp"
 
 namespace App {
