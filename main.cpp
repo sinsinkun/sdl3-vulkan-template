@@ -32,6 +32,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   SDL_Log("Window initialized");
   SDL_SetWindowMinimumSize(state.window, 400, 300);
 
+  // can add other shader formats: SDL_GPU_SHADERFORMAT_DXIL | SDL_GPU_SHADERFORMAT_MSL
   state.gpu = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV, true, NULL);
   if (!state.gpu) {
     SDL_Log("SDL_CreateGPUDevice() failed: %s", SDL_GetError());

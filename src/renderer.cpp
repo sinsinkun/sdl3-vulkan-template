@@ -111,44 +111,6 @@ SDL_GPUVertexInputState createVertexInputState() {
 	return state;
 }
 
-// helper for creating pipeline
-SDL_GPUGraphicsPipeline* createPipeline(
-	SDL_Window *window,
-	SDL_GPUDevice *device,
-	SDL_GPUShader *vertShader,
-	SDL_GPUShader *fragShader,
-	GPUPrimitiveType primitiveType
-) {
-	SDL_GPUGraphicsPipelineCreateInfo createInfo{};
-	createInfo.vertex_shader = vertShader;
-	createInfo.fragment_shader = fragShader;
-
-	createInfo.target_info = SDL_GPUGraphicsPipelineTargetInfo {
-		.color_target_descriptions = new SDL_GPUColorTargetDescription {
-			.format = SDL_GetGPUSwapchainTextureFormat(device, window),
-		},
-		.num_color_targets = 1,
-	};
-
-	createInfo.vertex_input_state = createVertexInputState();
-	
-	switch (primitiveType) {
-		case GPUPrimitiveType::Point:
-			createInfo.primitive_type = SDL_GPU_PRIMITIVETYPE_POINTLIST;
-			break;
-		case GPUPrimitiveType::Line:
-			createInfo.primitive_type = SDL_GPU_PRIMITIVETYPE_LINELIST;
-			createInfo.rasterizer_state.fill_mode = SDL_GPU_FILLMODE_FILL;
-			break;
-		default:
-			createInfo.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST;
-			createInfo.rasterizer_state.fill_mode = SDL_GPU_FILLMODE_FILL;
-			break;
-	}
-
-	return SDL_CreateGPUGraphicsPipeline(device, &createInfo);
-}
-
 #pragma region RenderInstance
 
 RenderInstance::RenderInstance(SDL_Window *window, SDL_GPUDevice *gpu) {
@@ -158,7 +120,29 @@ RenderInstance::RenderInstance(SDL_Window *window, SDL_GPUDevice *gpu) {
   SDL_GPUShader *vertShader = loadShader(device, "test.vert", 0, 0, 0, 0);
   SDL_GPUShader *fragShader = loadShader(device, "test.frag", 0, 0, 0, 0);
   // create pipeline
-  pipeline = createPipeline(win, device, vertShader, fragShader, GPUPrimitiveType::Triangle);
+	SDL_GPUPrimitiveType prim = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST;
+	SDL_GPUFillMode fillMode = SDL_GPU_FILLMODE_FILL;
+	// if (primitiveType == GPUPrimitiveType::Point) {
+	// 	prim = SDL_GPU_PRIMITIVETYPE_POINTLIST;
+	// } else if (primitiveType == GPUPrimitiveType::Line) {
+	// 	prim = SDL_GPU_PRIMITIVETYPE_LINELIST;
+	// }
+  pipeline = SDL_CreateGPUGraphicsPipeline(device, new SDL_GPUGraphicsPipelineCreateInfo {
+		.vertex_shader = vertShader,
+		.fragment_shader = fragShader,
+		.vertex_input_state = createVertexInputState(),
+		.primitive_type = prim,
+		.rasterizer_state = SDL_GPURasterizerState {
+			.fill_mode = fillMode,
+			.cull_mode = SDL_GPU_CULLMODE_NONE,
+		},
+		.target_info = SDL_GPUGraphicsPipelineTargetInfo {
+			.color_target_descriptions = new SDL_GPUColorTargetDescription {
+				.format = SDL_GetGPUSwapchainTextureFormat(device, window),
+			},
+			.num_color_targets = 1,
+		},
+	});
 
 	// create vertices
 	std::vector<RenderVertex> vertices;
@@ -262,8 +246,8 @@ void RenderInstance::uploadVertices(std::vector<RenderVertex> verts, std::vector
 	RenderObject newObject = {
 		.vertexBuffer = vBuffer,
 		.indexBuffer = iBuffer,
-		.vertexCount = verts.size(),
-		.indexCount = indices.size(),
+		.vertexCount = (int)verts.size(),
+		.indexCount = (int)indices.size(),
 	};
 	renderObjects.push_back(newObject);
 
@@ -298,7 +282,6 @@ int RenderInstance::renderToScreen() {
   // bind pipeline to render
 	SDL_BindGPUGraphicsPipeline(pass, pipeline);
 	for (RenderObject obj : renderObjects) {
-		// todo: handle uniforms + storage buffers
 		// todo: handle textures + samplers
 		SDL_BindGPUVertexBuffers(pass, 0, new SDL_GPUBufferBinding{obj.vertexBuffer, 0}, 1);
 		if (obj.indexBuffer != NULL) {
