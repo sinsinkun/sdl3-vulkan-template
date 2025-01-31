@@ -7,16 +7,15 @@ Can be conceptualized as the following:
 
 ```cpp
 int main(int argc, char *argv[]) {
-  SDL_AppInit();
-  bool exit = false;
+  SDL_Result result = SDL_AppInit();
   SDL_Event event;
-  while (!exit) {
+  while (result == SDL_APP_CONTINUE) {
     while (SDL_PollEvent(&event)) {
-      SDL_AppEvent();
+      result = SDL_AppEvent(&event);
     }
-    SDL_AppIterate();
+    result = SDL_AppIterate();
   }
-  SDL_AppQuit();
+  SDL_AppQuit(result);
   return 0;
 }
 ```
