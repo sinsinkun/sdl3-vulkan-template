@@ -5,6 +5,7 @@
 
 #include "util.hpp"
 #include "renderer.hpp"
+#include "sdfRenderer.hpp"
 
 namespace App {
   class AppState {

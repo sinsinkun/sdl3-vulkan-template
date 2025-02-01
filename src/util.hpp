@@ -5,6 +5,10 @@
 #include <SDL3/SDL.h>
 
 namespace App {
+  SDL_GPUShader* loadShader(
+    SDL_GPUDevice *device, const char* filename, Uint32 samplerCount,
+    Uint32 uniformBufferCount, Uint32 storageBufferCount, Uint32 storageTextureCount
+  );
   struct Vec2 {
     float x, y;
   };
@@ -32,7 +36,7 @@ namespace App {
   // Mat4x4 perspectiveMat4(float fovY, float aspectRatio, float near, float far);
   // Mat4x4 orthoMat4(float left, float right, float top, float bottom, float near, float far);
   Mat4x4 translationMat4(float x, float y, float z);
-  // Mat4x4 rotationMat4(Vec3 axis, float degree);
+  // Mat4x4 rotationQuatMat4(Vec3 axis, float degree);
   // Mat4x4 rotationEulerMat4(float roll, float pitch, float yaw);
   Mat4x4 scaleMat4(float x, float y, float z);
 }
