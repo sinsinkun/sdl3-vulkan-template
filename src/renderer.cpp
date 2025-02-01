@@ -117,7 +117,7 @@ RenderInstance::RenderInstance(SDL_Window *window, SDL_GPUDevice *gpu) {
   win = window;
   device = gpu;
   // create shaders
-  SDL_GPUShader *vertShader = loadShader(device, "test.vert", 0, 0, 0, 0);
+  SDL_GPUShader *vertShader = loadShader(device, "test.vert", 0, 1, 0, 0);
   SDL_GPUShader *fragShader = loadShader(device, "test.frag", 0, 0, 0, 0);
   // create pipeline
 	SDL_GPUPrimitiveType prim = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST;
@@ -283,6 +283,8 @@ int RenderInstance::renderToScreen() {
 	SDL_BindGPUGraphicsPipeline(pass, pipeline);
 	for (RenderObject obj : renderObjects) {
 		// todo: handle textures + samplers
+		Mat4x4 translate = App::translationMat4(0.5f, 0.0f, 0.0f);
+		SDL_PushGPUVertexUniformData(cmdBuf, 0, &translate.data, translate.size);
 		SDL_BindGPUVertexBuffers(pass, 0, new SDL_GPUBufferBinding{obj.vertexBuffer, 0}, 1);
 		if (obj.indexBuffer != NULL) {
 			SDL_BindGPUIndexBuffer(pass, new SDL_GPUBufferBinding{obj.indexBuffer, 0}, SDL_GPU_INDEXELEMENTSIZE_16BIT);
