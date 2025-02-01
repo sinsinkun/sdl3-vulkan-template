@@ -41,6 +41,9 @@ SDL3 installation instructions from source:
 ## Build
 .vscode is setup to run debug mode in VSCode (F5).
 
-Otherwise, release.bat is setup to compile a standalone release version.
+Otherwise, `release.bat` is setup to compile a standalone release version.
 
 Please note the release version requires a SDL3.dll in the same folder.
+
+For shaders, you will need the Vulkan SDK to compile GLSL/HLSL to SPIR-V.
+This is done through the `compile.bat` script.
