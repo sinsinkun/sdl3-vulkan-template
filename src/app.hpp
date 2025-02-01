@@ -11,7 +11,7 @@ namespace App {
   public:
     SDL_Window *window = NULL;
     SDL_GPUDevice *gpu = NULL;
-    RenderInstance *renderer = NULL;
+    SDFRenderer *renderer = NULL;
     // FPS debug helpers
     Uint64 lifetime = 0;
     Uint64 timeSinceLastFps = 0;

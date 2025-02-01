@@ -47,7 +47,9 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   }
   SDL_Log("Claimed window for GPU device");
 
-  state.renderer = new RenderInstance(state.window, state.gpu);
+  state.renderer = new SDFRenderer(state.window, state.gpu);
+
+  state.renderer->updateObjects();
 
   return SDL_APP_CONTINUE;
 }
@@ -108,6 +110,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 // clean up on exit
 void SDL_AppQuit(void *appstate, SDL_AppResult result) {
   AppState& state = *static_cast<AppState*>(appstate);
+  SDL_Log("Closing SDL3");
   state.renderer->destroy();
   delete state.renderer;
   SDL_ReleaseWindowFromGPUDevice(state.gpu, state.window);
