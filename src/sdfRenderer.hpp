@@ -8,14 +8,14 @@ namespace App {
   struct SDFRenderObject {
     Uint32 objType = 0;
     float radius = 0.0f;
-    Vec2 center = Vec2 { 0.0f, 0.0f }; // 1st quad
-    Vec2 v2 = Vec2 { 0.0f, 0.0f };
-    Vec2 v3 = Vec2 { 0.0f, 0.0f }; // 2nd quad
+    Vec2 center = Vec2(0.0f); // 1st quad
+    Vec2 v2 = Vec2(0.0f);
+    Vec2 v3 = Vec2(0.0f); // 2nd quad
     float cornerRadius = 0.0f;
     float rotation = 0.0f;
     float thickness = 0.0f;
     float padding = 0.0f; // 3rd quad
-    Vec4 color = Vec4{ 1.0f, 1.0f, 1.0f, 1.0f }; // 4th quad
+    Vec4 color = Vec4(1.0f); // 4th quad
   };
   enum SDFObjectType {
     SDF_None, SDF_Circle, SDF_Line, SDF_Triangle, SDF_Rect, SDF_RectA
@@ -34,14 +34,14 @@ namespace App {
     SDFRenderObject renderObject();
   protected:
     SDFObjectType type = SDF_None;
-    Vec2 center = Vec2 { 0.0f, 0.0f };
+    Vec2 center = Vec2(0.0f);
     float radius = 0.0f;
     float cornerRadius = 0.0f;
     float rotation = 0.0f;
     float thickness = 0.0f;
-    Vec2 v2 = Vec2 { 0.0f, 0.0f };
-    Vec2 v3 = Vec2 { 0.0f, 0.0f };
-    Vec4 color = Vec4{ 1.0f, 1.0f, 1.0f, 1.0f };
+    Vec2 v2 = Vec2(0.0f);
+    Vec2 v3 = Vec2(0.0f);
+    Vec4 color = Vec4(1.0f);
   };
   class SDFRenderer {
   public:

@@ -11,12 +11,60 @@ namespace App {
   );
   struct Vec2 {
     float x, y;
+    Vec2(float a) { x = a; y = a; }
+    Vec2(float x, float y) {
+      this->x = x; this->y = y;
+    }
+    Vec2 operator+(Vec2 b) {
+      return Vec2{ x + b.x, y + b.y };
+    }
+    Vec2 operator-(Vec2 b) {
+      return Vec2{ x - b.x, y - b.y };
+    }
+    Vec2 operator*(float b) {
+      return Vec2{ x * b, y * b};
+    }
+    Vec2 operator/(float b) {
+      return Vec2{ x / b, y / b};
+    }
   };
   struct Vec3 {
     float x, y, z;
+    Vec3(float a) { x = a; y = a; z = a; }
+    Vec3(float x, float y, float z) {
+      this->x = x; this->y = y; this->z = z;
+    }
+    Vec3 operator+(Vec3 b) {
+      return Vec3{ x + b.x, y + b.y, z + b.z };
+    }
+    Vec3 operator-(Vec3 b) {
+      return Vec3{ x - b.x, y - b.y, z - b.z };
+    }
+    Vec3 operator*(float b) {
+      return Vec3{ x * b, y * b, z * b };
+    }
+    Vec3 operator/(float b) {
+      return Vec3{ x / b, y / b, z / b };
+    }
   };
   struct Vec4 {
     float x, y, z, w;
+    Vec4(float a) { x = a; y = a; z = a; w = a; }
+    Vec4(float x, float y, float z, float w ) {
+      this->x = x; this->y = y; this->z = z; this->w = w;
+    }
+    Vec4 operator+(Vec4 b) {
+      return Vec4{ x + b.x, y + b.y, z + b.z, w + b.w };
+    }
+    Vec4 operator-(Vec4 b) {
+      return Vec4{ x - b.x, y - b.y, z - b.z, w - b.w };
+    }
+    Vec4 operator*(float b) {
+      return Vec4{ x * b, y * b, z * b, w * b };
+    }
+    Vec4 operator/(float b) {
+      return Vec4{ x / b, y / b, z / b, w / b };
+    }
   };
   struct Mat4x4 {
     float e00, e01, e02, e03;
