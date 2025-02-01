@@ -3,6 +3,9 @@
 layout(location = 0) in vec2 uv;
 layout(location = 1) in vec3 normal;
 
+// set 2: sampled textures -> storage textures -> storge buffers
+// set 3: uniform buffers
+
 layout(location = 0) out vec4 outColor;
 
 void main() {
