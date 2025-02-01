@@ -283,8 +283,8 @@ int RenderInstance::renderToScreen() {
 	SDL_BindGPUGraphicsPipeline(pass, pipeline);
 	for (RenderObject obj : renderObjects) {
 		// todo: handle textures + samplers
-		Mat4x4 translate = App::translationMat4(0.5f, 0.0f, 0.0f);
-		SDL_PushGPUVertexUniformData(cmdBuf, 0, &translate.data, translate.size);
+		Mat4x4 translate = App::translationMat4(0.0f, 0.1f, 0.0f);
+		SDL_PushGPUVertexUniformData(cmdBuf, 0, translate.rowMajor(), translate.byteSize);
 		SDL_BindGPUVertexBuffers(pass, 0, new SDL_GPUBufferBinding{obj.vertexBuffer, 0}, 1);
 		if (obj.indexBuffer != NULL) {
 			SDL_BindGPUIndexBuffer(pass, new SDL_GPUBufferBinding{obj.indexBuffer, 0}, SDL_GPU_INDEXELEMENTSIZE_16BIT);
