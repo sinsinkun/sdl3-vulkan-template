@@ -15,5 +15,6 @@ namespace App {
     // FPS debug helpers
     Uint64 lifetime = 0;
     Uint64 timeSinceLastFps = 0;
+    bool printFps = false;
   };
 }

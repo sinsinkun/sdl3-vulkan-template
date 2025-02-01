@@ -24,7 +24,8 @@ int main(int argc, char *argv[]) {
 Compiled using g++ from the default msys2 location:
 - C:/msys64/ucrt64/bin/g++.exe
 
-SDL3 is assumed to be installed through msys2
+SDL3 is assumed to be manually installed at C:/Programs/SDL3
+(msys2 SDL3 package can't be linked statically)
 
 ## Build
 .vscode is setup to run debug mode in VSCode (F5).

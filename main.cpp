@@ -64,6 +64,14 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
       if (event->key.scancode == SDL_SCANCODE_ESCAPE) {
         return SDL_APP_SUCCESS;
       }
+      if (event->key.scancode == SDL_SCANCODE_F1) {
+        state.printFps = true;
+      }
+      break;
+    case SDL_EVENT_KEY_UP:
+      if (event->key.scancode == SDL_SCANCODE_F1) {
+        state.printFps = false;
+      }
       break;
     case SDL_EVENT_TEXT_INPUT:
       break;
@@ -81,7 +89,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   Uint64 newTime = SDL_GetTicks();
   Uint64 delta = newTime - state.lifetime;
   state.lifetime = SDL_GetTicks();
-  if (delta != 0 && state.timeSinceLastFps > 1000) {
+  if (delta != 0 && state.printFps && state.timeSinceLastFps > 600) {
     state.timeSinceLastFps = 0;
     float fps = 1000.0f / delta;
     SDL_Log("FPS: %.2f", fps);

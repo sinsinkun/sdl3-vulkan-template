@@ -11,6 +11,8 @@
         "${fileDirname}\\src\\**.cpp",
         "-o",
         "${fileDirname}\\build\\main.exe",
+        "-IC:\\Programs\\SDL3\\include", 
+        "-LC:\\Programs\\SDL3\\lib",
         "-lSDL3",
       ],
       "options": {
