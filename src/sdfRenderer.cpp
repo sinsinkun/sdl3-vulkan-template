@@ -2,6 +2,95 @@
 
 using namespace App;
 
+SDFObject SDFObject::circle(Vec2 center, float radius) {
+	SDFObject obj;
+	obj.type = SDF_Circle;
+	obj.center = center;
+	obj.radius = radius;
+	return obj;
+}
+
+SDFObject SDFObject::line(Vec2 p1, Vec2 p2, float thickness) {
+	SDFObject obj;
+	obj.type = SDF_Line;
+	obj.center = p1;
+	obj.v2 = p2;
+	obj.thickness = thickness;
+	return obj;
+}
+
+SDFObject SDFObject::triangle(Vec2 p1, Vec2 p2, Vec2 p3) {
+	SDFObject obj;
+	obj.type = SDF_Triangle;
+	obj.center = p1;
+	obj.v2 = p2;
+	obj.v3 = p3;
+	return obj;
+}
+
+SDFObject SDFObject::rect(Vec2 center, Vec2 size) {
+	SDFObject obj;
+	obj.type = SDF_Rect;
+	obj.center = center;
+	obj.v2 = size;
+	return obj;
+}
+
+SDFObject SDFObject::rect(Vec2 center, Vec2 size, float rotateDeg) {
+	SDFObject obj;
+	obj.type = SDF_RectA;
+	obj.center = center;
+	obj.v2 = size;
+	obj.rotation = rotateDeg;
+	return obj;
+}
+
+void SDFObject::withColor(Vec4 color) {
+	this->color = color;
+}
+
+void SDFObject::withRoundCorner(float radius) {
+	this->cornerRadius = radius;
+}
+
+void SDFObject::asOutline(float thickness) {
+	this->thickness = thickness;
+}
+
+SDFRenderObject SDFObject::renderObject() {
+	Uint32 objType = 0;
+	switch (type) {
+		case SDF_Circle:
+			objType = 1;
+			break;
+		case SDF_Line:
+			objType = 2;
+			break;
+		case SDF_Triangle:
+			objType = 3;
+			break;
+		case SDF_Rect:
+			objType = 4;
+			break;
+		case SDF_RectA:
+			objType = 5;
+			break;
+		default:
+			break;
+	}
+
+	return SDFRenderObject {
+		.objType = objType,
+		.radius = radius,
+		.center = center,
+		.v2 = v2,
+		.v3 = v3,
+		.cornerRadius = cornerRadius,
+		.rotation = rotation,
+		.thickness = thickness,
+		.color = color,
+	};
+}
 
 #pragma region SDFRenderer
 
@@ -37,21 +126,7 @@ SDFRenderer::SDFRenderer(SDL_Window* window, SDL_GPUDevice *gpu) {
   SDL_ReleaseGPUShader(device, fragShader);
 }
 
-void SDFRenderer::updateObjects() {
-	std::vector<SDFRenderObject> objs = {
-		SDFRenderObject {
-			.objType = 1,
-			.radius = 10.0f,
-			.center = Vec2{ 200.0f, 250.0f },
-			.color = Vec4{ 1.0f, 0.0f, 0.0f, 1.0f },
-		},
-		SDFRenderObject {
-			.objType = 1,
-			.radius = 40.0f,
-			.center = Vec2{ 500.0f, 500.0f },
-			.color = Vec4{ 0.0f, 0.0f, 1.0f, 1.0f },
-		}
-	};
+void SDFRenderer::refreshObjects(std::vector<SDFObject> objs) {
 	Uint32 objsSize = sizeof(SDFRenderObject) * objs.size();
 	// update object buffer with new data
 	SDL_GPUTransferBuffer *transferBuf = SDL_CreateGPUTransferBuffer(
@@ -61,11 +136,11 @@ void SDFRenderer::updateObjects() {
 			.size = objsSize,
 		}
 	);
-	SDFRenderObject* vertData = static_cast<SDFRenderObject*>(SDL_MapGPUTransferBuffer(
+	SDFRenderObject* objData = static_cast<SDFRenderObject*>(SDL_MapGPUTransferBuffer(
 		device, transferBuf, false
 	));
 	for (int i=0; i < objs.size(); i++) {
-		vertData[i] = objs.at(i);
+		objData[i] = objs.at(i).renderObject();
 	}
 	SDL_UnmapGPUTransferBuffer(device, transferBuf);
 
@@ -109,7 +184,7 @@ int SDFRenderer::renderToScreen() {
 	// define render pass
 	SDL_GPURenderPass *pass = SDL_BeginGPURenderPass(cmdBuf, new SDL_GPUColorTargetInfo {
 		.texture = swapchain,
-		.clear_color = SDL_FColor{ 0.04f, 0.04f, 0.08f, 1.0f },
+		.clear_color = SDL_FColor{ 0.3f, 0.2f, 0.1f, 1.0f },
 		.load_op = SDL_GPU_LOADOP_CLEAR,
 		.store_op = SDL_GPU_STOREOP_STORE,
 	}, 1, NULL);

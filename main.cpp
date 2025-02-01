@@ -49,7 +49,17 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
   state.renderer = new SDFRenderer(state.window, state.gpu);
 
-  state.renderer->updateObjects();
+  std::vector<SDFObject> objs;
+  SDFObject cir1 = SDFObject::circle(Vec2 { 800.0f, 600.0f }, 38.0f);
+  cir1.withColor(Vec4 {1.0f, 0.0f, 0.0f, 1.0f});
+  SDFObject cir2 = SDFObject::circle(Vec2 { 200.0f, 100.0f }, 50.0f);
+  cir2.withColor(Vec4 {0.0f, 0.0f, 1.0f, 1.0f});
+  SDFObject rect1 = SDFObject::rect(Vec2 { 400.0f, 200.0f }, Vec2 { 100.0f, 100.0f });
+  rect1.withColor(Vec4 {0.0f, 1.0f, 0.0f, 1.0f});
+  objs.push_back(cir1);
+  objs.push_back(cir2);
+  objs.push_back(rect1);
+  state.renderer->refreshObjects(objs);
 
   return SDL_APP_CONTINUE;
 }
