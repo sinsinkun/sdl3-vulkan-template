@@ -12,6 +12,8 @@ namespace App {
   public:
     SDL_Window *window = NULL;
     SDL_GPUDevice *gpu = NULL;
+    // SDF render
+    std::vector<SDFObject> sdfObjects;
     SDFRenderer *renderer = NULL;
     // FPS debug helpers
     Uint64 lifetime = 0;

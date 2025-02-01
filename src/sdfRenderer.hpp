@@ -15,7 +15,7 @@ namespace App {
     float rotation = 0.0f;
     float thickness = 0.0f;
     float padding = 0.0f; // 3rd quad
-    Vec4 color = Vec4(1.0f); // 4th quad
+    SDL_FColor color = SDL_FColor{1.0f, 1.0f, 1.0f, 1.0f}; // 4th quad
   };
   enum SDFObjectType {
     SDF_None, SDF_Circle, SDF_Line, SDF_Triangle, SDF_Rect, SDF_RectA
@@ -28,7 +28,7 @@ namespace App {
     static SDFObject triangle(Vec2 p1, Vec2 p2, Vec2 p3);
     static SDFObject rect(Vec2 center, Vec2 size);
     static SDFObject rect(Vec2 center, Vec2 size, float rotateDeg);
-    void withColor(Vec4 color);
+    void withColor(SDL_FColor color);
     void withRoundCorner(float radius);
     void asOutline(float thickness);
     SDFRenderObject renderObject();
@@ -41,7 +41,13 @@ namespace App {
     float thickness = 0.0f;
     Vec2 v2 = Vec2(0.0f);
     Vec2 v3 = Vec2(0.0f);
-    Vec4 color = Vec4(1.0f);
+    SDL_FColor color = SDL_FColor{1.0f, 1.0f, 1.0f, 1.0f};
+  };
+  struct SDFSysData {
+    Vec2 screenSize;
+    Vec2 lightPos;
+    SDL_FColor lightColor;
+    float lightDist;
   };
   class SDFRenderer {
   public:
@@ -51,7 +57,7 @@ namespace App {
     SDL_GPUGraphicsPipeline *pipeline = NULL;
     SDL_GPUBuffer *objsBuffer = NULL;
     void refreshObjects(std::vector<SDFObject> objs);
-    int renderToScreen();
+    int renderToScreen(SDFSysData sys);
     void destroy();
   };
 }

@@ -10,7 +10,7 @@
         "${fileDirname}\\**.cpp",
         "${fileDirname}\\src\\**.cpp",
         "-o",
-        "${fileDirname}\\build\\main.exe",
+        "${fileDirname}\\build\\debug.exe",
         "-IC:\\Programs\\SDL3\\include", 
         "-LC:\\Programs\\SDL3\\lib",
         "-lSDL3",

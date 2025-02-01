@@ -49,17 +49,16 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
   state.renderer = new SDFRenderer(state.window, state.gpu);
 
-  std::vector<SDFObject> objs;
   SDFObject cir1 = SDFObject::circle(Vec2 { 800.0f, 600.0f }, 38.0f);
-  cir1.withColor(Vec4 {1.0f, 0.0f, 0.0f, 1.0f});
-  SDFObject cir2 = SDFObject::circle(Vec2 { 200.0f, 100.0f }, 50.0f);
-  cir2.withColor(Vec4 {0.0f, 0.0f, 1.0f, 1.0f});
+  cir1.withColor(SDL_FColor {1.0f, 0.0f, 0.0f, 1.0f});
+  SDFObject cir2 = SDFObject::circle(Vec2 { 300.0f, 200.0f }, 50.0f);
+  cir2.withColor(SDL_FColor {0.0f, 0.0f, 1.0f, 1.0f});
   SDFObject rect1 = SDFObject::rect(Vec2 { 400.0f, 200.0f }, Vec2 { 100.0f, 100.0f });
-  rect1.withColor(Vec4 {0.0f, 1.0f, 0.0f, 1.0f});
-  objs.push_back(cir1);
-  objs.push_back(cir2);
-  objs.push_back(rect1);
-  state.renderer->refreshObjects(objs);
+  rect1.withColor(SDL_FColor {0.0f, 1.0f, 0.0f, 0.5f});
+  state.sdfObjects.push_back(cir1);
+  state.sdfObjects.push_back(cir2);
+  state.sdfObjects.push_back(rect1);
+  state.renderer->refreshObjects(state.sdfObjects);
 
   return SDL_APP_CONTINUE;
 }
@@ -109,7 +108,12 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     state.timeSinceLastFps += delta;
   }
   
-  int err = state.renderer->renderToScreen();
+  int err = state.renderer->renderToScreen(SDFSysData {
+    .screenSize = Vec2(800.0f, 600.0f),
+    .lightPos = Vec2(0.0f, 0.0f),
+    .lightColor = SDL_FColor{1.0f, 1.0f, 1.0f, 1.0f},
+    .lightDist = 1000.0f,
+  });
   if (err != 0) {
     SDL_Log("Render to screen failure");
     return SDL_APP_FAILURE;

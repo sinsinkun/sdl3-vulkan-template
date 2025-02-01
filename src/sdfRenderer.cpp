@@ -45,7 +45,7 @@ SDFObject SDFObject::rect(Vec2 center, Vec2 size, float rotateDeg) {
 	return obj;
 }
 
-void SDFObject::withColor(Vec4 color) {
+void SDFObject::withColor(SDL_FColor color) {
 	this->color = color;
 }
 
@@ -112,6 +112,15 @@ SDFRenderer::SDFRenderer(SDL_Window* window, SDL_GPUDevice *gpu) {
 		.target_info = SDL_GPUGraphicsPipelineTargetInfo {
 			.color_target_descriptions = new SDL_GPUColorTargetDescription {
 				.format = SDL_GetGPUSwapchainTextureFormat(device, window),
+				.blend_state = SDL_GPUColorTargetBlendState {
+					.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
+					.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+					.color_blend_op = SDL_GPU_BLENDOP_ADD,
+					.src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
+					.dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+					.alpha_blend_op = SDL_GPU_BLENDOP_ADD,
+					.enable_blend = true,
+				},
 			},
 			.num_color_targets = 1,
 		},
@@ -168,7 +177,7 @@ void SDFRenderer::refreshObjects(std::vector<SDFObject> objs) {
 	SDL_ReleaseGPUTransferBuffer(device, transferBuf);
 }
 
-int SDFRenderer::renderToScreen() {
+int SDFRenderer::renderToScreen(SDFSysData sys) {
 	// acquire command buffer
 	SDL_GPUCommandBuffer *cmdBuf = SDL_AcquireGPUCommandBuffer(device);
 
@@ -184,14 +193,14 @@ int SDFRenderer::renderToScreen() {
 	// define render pass
 	SDL_GPURenderPass *pass = SDL_BeginGPURenderPass(cmdBuf, new SDL_GPUColorTargetInfo {
 		.texture = swapchain,
-		.clear_color = SDL_FColor{ 0.3f, 0.2f, 0.1f, 1.0f },
+		.clear_color = SDL_FColor{ 0.04f, 0.02f, 0.08f, 1.0f },
 		.load_op = SDL_GPU_LOADOP_CLEAR,
 		.store_op = SDL_GPU_STOREOP_STORE,
 	}, 1, NULL);
 
 	// bind pipeline to render
 	SDL_BindGPUGraphicsPipeline(pass, pipeline);
-	// SDL_PushGPUFragmentUniformData(cmdBuf, 0, NULL, 0);
+	SDL_PushGPUFragmentUniformData(cmdBuf, 0, &sys, sizeof(SDFSysData));
 	SDL_BindGPUFragmentStorageBuffers(pass, 0, &objsBuffer, 1);
 	SDL_DrawGPUPrimitives(pass, 6, 1, 0, 0);
 

@@ -18,10 +18,9 @@ layout(set=2, binding=0) buffer readonly SDFStorage {
 
 layout(set=3, binding=0) uniform SysData {
   vec2 screenSize;
-  vec2 mousePos;
-  int lightDist;
   vec2 lightPos;
   vec4 lightColor;
+  float lightDist;
 };
 
 layout(location=0) out vec4 outColor;
@@ -138,11 +137,54 @@ SdfOut calculateSdf(vec2 p, float maxDist) {
   return sdf;
 }
 
+struct RayMarchOut {
+  float dist;
+  float minSdf;
+};
+
+RayMarchOut rayMarch(vec2 origin, vec2 dir, float maxDist) {
+  vec2 ndir = normalize(-dir);
+  vec2 p = origin;
+  SdfOut sdf = calculateSdf(p, maxDist);
+  float rayDist = sdf.dist;
+  float minSdf = sdf.dist;
+  uint iter = 0;
+  while (rayDist < maxDist && sdf.dist > 0.999 && iter < 99999) {
+    iter += 1;
+    p = p + ndir * sdf.dist;
+    sdf = calculateSdf(p, maxDist);
+    rayDist += sdf.dist;
+    if (sdf.dist < minSdf) {
+      minSdf = sdf.dist;
+    }
+  }
+
+  RayMarchOut rm;
+  rm.dist = 0.0;
+  rm.minSdf = 0.0;
+  return rm;
+}
+
 // ----------------------------------------- //
 // ----------- SHADER DEFINITION ----------- //
 // ----------------------------------------- //
 void main() {
   vec2 p = gl_FragCoord.xy;
+  float shadowSmoothing = 4.0;
+  // calculate SDF + ray march distances
   SdfOut sdf = calculateSdf(p, 10000.0);
-  outColor = sdf.color;
+  float d = distance(p, lightPos);
+  vec2 shadowOffset = step(0.1, lightDist) * normalize(p - lightPos) * shadowSmoothing;
+  RayMarchOut rm = rayMarch(p - shadowOffset, p - lightPos, d);
+  // apply lighting to colors
+  vec4 clr = sdf.color;
+  if (lightDist > 0.0 && abs(d - rm.dist) < 0.1) {
+    vec4 lightClr = lightColor;
+    if (d > shadowSmoothing) {
+      lightClr = lightClr * smoothstep(0.0, shadowSmoothing, rm.minSdf);
+    }
+    lightClr = lightClr * smoothstep(lightDist, 0.0, d);
+    clr += lightClr;
+  }
+  outColor = clr;
 }
