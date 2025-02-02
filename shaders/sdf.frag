@@ -39,24 +39,19 @@ float sdLine(vec2 p, vec2 a, vec2 b) {
   return length(pa - ba * h);
 }
 
-float sdTriangle(vec2 p, vec2 c, vec2 p0, vec2 p1, vec2 p2) {
-  vec2 np = p - c;
-  p0 = p0 - c;
-  p1 = p1 - c;
-  p2 = p2 - c;
-
+float sdTriangle(vec2 p, vec2 p0, vec2 p1, vec2 p2) {
   vec2 e0 = p1 - p0;
-  vec2 v0 = np - p0;
+  vec2 v0 = p - p0;
   vec2 d0 = v0 - e0 * clamp(dot(v0,e0)/dot(e0,e0),0.0,1.0);
   float d0d = dot(d0, d0);
 
   vec2 e1 = p2 - p1;
-  vec2 v1 = np - p1;
+  vec2 v1 = p - p1;
   vec2 d1 = v1 - e1 * clamp(dot(v1,e1)/dot(e1,e1),0.0,1.0);
   float d1d = dot(d1, d1);
 
   vec2 e2 = p0 - p2;
-  vec2 v2 = np - p2;
+  vec2 v2 = p - p2;
   vec2 d2 = v2 - e2 * clamp(dot(v2,e2)/dot(e2,e2),0.0,1.0);
   float d2d = dot(d2, d2);
 
@@ -109,7 +104,7 @@ SdfOut calculateSdf(vec2 p, float maxDist) {
       d = sdLine(p, obj.center, obj.v2);
     }
     if (obj.objType == 3) { // triangle
-      d = sdTriangle(p, obj.center, obj.center, obj.v2, obj.v3);
+      d = sdTriangle(p, obj.center, obj.v2, obj.v3);
     }
     if (obj.objType == 4) { // rect
       d = sdRect(p, obj.center, obj.v2);

@@ -56,9 +56,12 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   SDFObject rect1 = SDFObject::rect(Vec2 { 400.0f, 200.0f }, Vec2 { 50.0f, 60.0f });
   rect1.withColor(SDL_FColor {0.0f, 1.0f, 0.0f, 0.8f});
   rect1.withRoundCorner(10.0f);
+  SDFObject tri1 = SDFObject::triangle(Vec2 { 100.0f, 400.0f}, Vec2 { 220.0f, 330.0f }, Vec2 { 180.0f, 500.0f });
+  tri1.withRoundCorner(5.0f);
   state.sdfObjects.push_back(cir1);
   state.sdfObjects.push_back(cir2);
   state.sdfObjects.push_back(rect1);
+  state.sdfObjects.push_back(tri1);
   state.renderer->refreshObjects(state.sdfObjects);
 
   return SDL_APP_CONTINUE;
