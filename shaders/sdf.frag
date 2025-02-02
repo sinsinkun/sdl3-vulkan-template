@@ -95,11 +95,7 @@ float opSmoothMerge(float sd1, float sd2, float r) {
   return length(intsp) - r;
 }
 
-struct SdfOut {
-  float dist;
-  vec4 color;
-};
-
+struct SdfOut { float dist; vec4 color; };
 SdfOut calculateSdf(vec2 p, float maxDist) {
   float dist;
   vec4 clr = vec4(0.0);
@@ -137,11 +133,7 @@ SdfOut calculateSdf(vec2 p, float maxDist) {
   return sdf;
 }
 
-struct RayMarchOut {
-  float dist;
-  float minSdf;
-};
-
+struct RayMarchOut { float dist; float minSdf; };
 RayMarchOut rayMarch(vec2 origin, vec2 dir, float maxDist) {
   vec2 ndir = normalize(-dir);
   vec2 p = origin;
@@ -170,21 +162,12 @@ RayMarchOut rayMarch(vec2 origin, vec2 dir, float maxDist) {
 // ----------------------------------------- //
 void main() {
   vec2 p = gl_FragCoord.xy;
-  float shadowSmoothing = 4.0;
   // calculate SDF + ray march distances
   SdfOut sdf = calculateSdf(p, 10000.0);
-  float d = distance(p, lightPos);
-  vec2 shadowOffset = step(0.1, lightDist) * normalize(p - lightPos) * shadowSmoothing;
-  RayMarchOut rm = rayMarch(p - shadowOffset, p - lightPos, d);
   // apply lighting to colors
   vec4 clr = sdf.color;
-  if (lightDist > 0.0 && abs(d - rm.dist) < 0.1) {
-    vec4 lightClr = lightColor;
-    if (d > shadowSmoothing) {
-      lightClr = lightClr * smoothstep(0.0, shadowSmoothing, rm.minSdf);
-    }
-    lightClr = lightClr * smoothstep(lightDist, 0.0, d);
-    clr += lightClr;
-  }
+  float lightd = length(p - lightPos);
+  vec4 light = lightColor * smoothstep(lightDist, 0.0, lightd);
+  clr += light;
   outColor = clr;
 }

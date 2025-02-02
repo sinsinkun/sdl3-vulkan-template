@@ -100,19 +100,20 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   Uint64 newTime = SDL_GetTicks();
   Uint64 delta = newTime - state.lifetime;
   state.lifetime = SDL_GetTicks();
-  if (delta != 0 && state.printFps && state.timeSinceLastFps > 600) {
+  if (state.printFps && state.timeSinceLastFps > 600) {
     state.timeSinceLastFps = 0;
-    float fps = 1000.0f / delta;
+    float fps = 9999.0f;
+    if (delta != 0) fps = 1000.0f / delta;
     SDL_Log("FPS: %.2f", fps);
   } else {
     state.timeSinceLastFps += delta;
   }
-  
+
   int err = state.renderer->renderToScreen(SDFSysData {
     .screenSize = Vec2(800.0f, 600.0f),
-    .lightPos = Vec2(0.0f, 0.0f),
-    .lightColor = SDL_FColor{1.0f, 1.0f, 1.0f, 1.0f},
-    .lightDist = 1000.0f,
+    .lightPos = Vec2(400.0f + 100.0f * SDL_sinf(0.002f * state.lifetime), 100.0f),
+    .lightColor = SDL_FColor{0.2f, 0.2f, 0.5f, 0.8f},
+    .lightDist = 500.0f,
   });
   if (err != 0) {
     SDL_Log("Render to screen failure");

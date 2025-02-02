@@ -183,11 +183,11 @@ int SDFRenderer::renderToScreen(SDFSysData sys) {
 
 	// acquire swapchain
 	SDL_GPUTexture* swapchain = NULL;
-	SDL_WaitAndAcquireGPUSwapchainTexture(cmdBuf, win, &swapchain, NULL, NULL);
+	SDL_AcquireGPUSwapchainTexture(cmdBuf, win, &swapchain, NULL, NULL);
 	if (swapchain == NULL) {
-		SDL_Log("Failed to obtain swapchain: %s", SDL_GetError());
-		SDL_SubmitGPUCommandBuffer(cmdBuf);
-		return 1;
+		// if swapchain == NULL, its not ready yet - skip render
+		SDL_CancelGPUCommandBuffer(cmdBuf);
+		return 0;
 	}
 
 	// define render pass
