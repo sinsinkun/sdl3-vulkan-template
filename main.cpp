@@ -48,8 +48,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   SDL_Log("Claimed window for GPU device");
 
   state.textEngine.init();
-  state.textEngine.loadFont("assets/Helvetica.ttf");
-  state.textEngine.glyph('a');
+  state.textEngine.loadFont("assets/Helvetica.ttf", state.gpu);
   state.renderer = new SDFRenderer(state.window, state.gpu);
 
   SDFObject cir1 = SDFObject::circle(Vec2 { 500.0f, 450.0f }, 38.0f);
