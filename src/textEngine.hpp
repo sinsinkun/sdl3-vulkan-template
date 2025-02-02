@@ -11,6 +11,7 @@ namespace App {
     FT_Face font;
     FT_Error init();
     FT_Error loadFont(const char *filepathname);
+    void glyph(char c);
     void destroy();
   };
 }

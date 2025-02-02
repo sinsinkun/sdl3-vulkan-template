@@ -26,6 +26,20 @@ FT_Error TextEngine::loadFont(const char *filepathname) {
   return 0;
 }
 
+void TextEngine::glyph(char c) {
+  FT_Error err = FT_Load_Glyph(font, c, FT_LOAD_DEFAULT);
+  if (err != 0) {
+    SDL_Log("Could not load glyph %c", c);
+    return;
+  }
+  err = FT_Render_Glyph(font->glyph, FT_RENDER_MODE_NORMAL);
+  if (err != 0) {
+    SDL_Log("Could not render glyph %c", c);
+    return;
+  }
+  font->glyph->bitmap;
+}
+
 void TextEngine::destroy() {
   FT_Done_Face(font);
 }
