@@ -6,12 +6,14 @@
 #include "util.hpp"
 #include "renderer.hpp"
 #include "sdfRenderer.hpp"
+#include "textEngine.hpp"
 
 namespace App {
   class AppState {
   public:
     SDL_Window *window = NULL;
     SDL_GPUDevice *gpu = NULL;
+    TextEngine textEngine;
     // SDF render
     std::vector<SDFObject> sdfObjects;
     SDFRenderer *renderer = NULL;
