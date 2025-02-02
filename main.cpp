@@ -47,8 +47,8 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   }
   SDL_Log("Claimed window for GPU device");
 
-  state.textEngine.init();
-  state.textEngine.loadFont("assets/Helvetica.ttf", state.gpu);
+  state.textEngine.init(state.gpu);
+  state.textEngine.loadFont("assets/Helvetica.ttf", 32);
   state.renderer = new SDFRenderer(state.window, state.gpu);
 
   SDFObject cir1 = SDFObject::circle(Vec2 { 500.0f, 450.0f }, 38.0f);
@@ -83,6 +83,9 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
       }
       if (event->key.scancode == SDL_SCANCODE_F1) {
         state.printFps = true;
+      }
+      if (event->key.scancode == SDL_SCANCODE_A) {
+        state.textEngine.drawGlyphToTexture(state.textEngine.screenTx, 'a');
       }
       break;
     case SDL_EVENT_KEY_UP:

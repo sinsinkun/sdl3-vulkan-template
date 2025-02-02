@@ -4,7 +4,7 @@ using namespace App;
 
 #pragma region FontCache
 
-FT_Error FontCache::init(const FT_Library* lib, const char *filepathname) {
+FT_Error FontCache::init(const FT_Library* lib, const char *filepathname, int fontSize) {
   FT_Error err = FT_New_Face(*lib, filepathname, 0, &face);
   if (err == FT_Err_Unknown_File_Format) {
     SDL_Log("Unknown font file format");
@@ -14,11 +14,11 @@ FT_Error FontCache::init(const FT_Library* lib, const char *filepathname) {
     return err;
   }
   SDL_Log("Successfully opened font file with %d glyphs", face->num_glyphs);
-  FT_Set_Char_Size(face, 0, 20*64, 80, 80);
+  FT_Set_Char_Size(face, 0, fontSize*64, 80, 80);
   return 0;
 }
 
-void FontCache::loadGlyph(FT_ULong c, SDL_GPUDevice *device) {
+void FontCache::cacheGlyph(FT_ULong c) {
   FT_Error err = FT_Load_Char(face, c, FT_LOAD_RENDER);
   if (err != 0) {
     SDL_Log("Could not load glyph %c", c);
@@ -29,15 +29,26 @@ void FontCache::loadGlyph(FT_ULong c, SDL_GPUDevice *device) {
     return;
   }
 
-  // todo: draw bitmap
   FT_GlyphSlot slot = face->glyph;
+  slot->bitmap.palette;
   FontChar fc {
-    .textureId = 0,
-    .size = Vec2(slot->bitmap.width, slot->bitmap.rows),
-    .bearing = Vec2(slot->bitmap_left, slot->bitmap_top),
+    .buffer = slot->bitmap.buffer,
+    .bufferSize = slot->bitmap.width * slot->bitmap.rows,
+    .pxWidth = slot->bitmap.width,
+    .pxHeight = slot->bitmap.rows,
+    .offsetLeft = slot->bitmap_left,
+    .offsetTop = slot->bitmap_top,
     .advance = (Uint32)slot->advance.x,
   };
-  std::vector<Uint8> bitmap;
+  chars.insert(std::pair<FT_ULong, FontChar>(c, fc));
+}
+
+FontChar* FontCache::getGlyph(FT_ULong c) {
+  if (chars.count(c) == 1) {
+    return &chars.at(c);
+  }
+  cacheGlyph(c);
+  return &chars.at(c);
 }
 
 void FontCache::destroy() {
@@ -48,25 +59,81 @@ void FontCache::destroy() {
 
 #pragma region TextEngine
 
-FT_Error TextEngine::init() {
+FT_Error TextEngine::init(SDL_GPUDevice *device) {
+  this->device = device;
   FT_Error err = FT_Init_FreeType(&ftlib);
   if (err != 0) {
     SDL_Log("Failed to init freetype");
     return err;
   }
   SDL_Log("Initialized Freetype");
+
+  screenTx = SDL_CreateGPUTexture(device, new SDL_GPUTextureCreateInfo {
+    .type = SDL_GPU_TEXTURETYPE_2D,
+    .format = SDL_GPU_TEXTUREFORMAT_R8_UINT,
+    .usage = SDL_GPU_TEXTUREUSAGE_COLOR_TARGET,
+    .width = 400,
+    .height = 200,
+    .layer_count_or_depth = 1,
+    .num_levels = 1,
+  });
+  SDL_SetGPUTextureName(device, screenTx, "Text Texture");
+
   return 0;
 }
 
-FT_Error TextEngine::loadFont(const char *filepathname, SDL_GPUDevice *device) {
-  FT_Error err = font.init(&ftlib, filepathname);
-  font.loadGlyph('&', device);
-  font.loadGlyph(0xF09F9881, device); // U+1F601: smiley face
+FT_Error TextEngine::loadFont(const char *filepathname, int fontSize) {
+  FT_Error err = font.init(&ftlib, filepathname, fontSize);
+  font.cacheGlyph('&');
+  font.cacheGlyph(0xF09F9881); // U+1F601: smiley face
   return err;
+}
+
+void TextEngine::drawGlyphToTexture(SDL_GPUTexture *tx, char c) {
+  if (tx == NULL) {
+    SDL_Log("No texture provided to draw onto");
+    return;
+  }
+  // grab glyph from font cache
+  FontChar* ch = font.getGlyph(c);
+  SDL_GPUTransferBuffer *transBuf = SDL_CreateGPUTransferBuffer(
+    device,
+    new SDL_GPUTransferBufferCreateInfo {
+      .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
+      .size = ch->bufferSize
+    }
+  );
+
+  SDL_GPUCommandBuffer *cmdBuf = SDL_AcquireGPUCommandBuffer(device);
+  SDL_GPUCopyPass *pass = SDL_BeginGPUCopyPass(cmdBuf);
+
+  SDL_UploadToGPUTexture(
+    pass,
+    new SDL_GPUTextureTransferInfo {
+      .transfer_buffer = transBuf,
+      .offset = 0,
+      .pixels_per_row = ch->pxWidth,
+      .rows_per_layer = ch->pxHeight,
+    },
+    new SDL_GPUTextureRegion {
+      .texture = tx,
+      .x = 5,
+      .y = 5 + ch->pxHeight - ch->offsetTop,
+      .w = ch->pxWidth,
+      .h = ch->pxHeight,
+      .d = 1,
+    },
+    false
+  );
+
+  SDL_EndGPUCopyPass(pass);
+  SDL_SubmitGPUCommandBuffer(cmdBuf);
+  SDL_ReleaseGPUTransferBuffer(device, transBuf);
 }
 
 void TextEngine::destroy() {
   font.destroy();
+  SDL_ReleaseGPUTexture(device, screenTx);
   FT_Done_FreeType(ftlib);
 }
 
