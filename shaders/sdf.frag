@@ -20,7 +20,7 @@ layout(set=3, binding=0) uniform SysData {
   vec2 screenSize;
   vec2 lightPos;
   vec4 lightColor;
-  float lightDist;
+  float lightMaxDist;
 };
 
 layout(location=0) out vec4 outColor;
@@ -135,7 +135,7 @@ SdfOut calculateSdf(vec2 p, float maxDist) {
 
 struct RayMarchOut { float dist; float minSdf; };
 RayMarchOut rayMarch(vec2 origin, vec2 dir, float maxDist) {
-  vec2 ndir = normalize(-dir);
+  vec2 ndir = normalize(dir);
   vec2 p = origin;
   SdfOut sdf = calculateSdf(p, maxDist);
   float rayDist = sdf.dist;
@@ -152,8 +152,8 @@ RayMarchOut rayMarch(vec2 origin, vec2 dir, float maxDist) {
   }
 
   RayMarchOut rm;
-  rm.dist = 0.0;
-  rm.minSdf = 0.0;
+  rm.dist = min(rayDist, maxDist);
+  rm.minSdf = minSdf;
   return rm;
 }
 
@@ -162,12 +162,7 @@ RayMarchOut rayMarch(vec2 origin, vec2 dir, float maxDist) {
 // ----------------------------------------- //
 void main() {
   vec2 p = gl_FragCoord.xy;
-  // calculate SDF + ray march distances
+  // calculate SDF
   SdfOut sdf = calculateSdf(p, 10000.0);
-  // apply lighting to colors
-  vec4 clr = sdf.color;
-  float lightd = length(p - lightPos);
-  vec4 light = lightColor * smoothstep(lightDist, 0.0, lightd);
-  clr += light;
-  outColor = clr;
+  outColor = sdf.color;
 }

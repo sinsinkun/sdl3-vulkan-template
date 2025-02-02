@@ -49,12 +49,13 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
   state.renderer = new SDFRenderer(state.window, state.gpu);
 
-  SDFObject cir1 = SDFObject::circle(Vec2 { 800.0f, 600.0f }, 38.0f);
+  SDFObject cir1 = SDFObject::circle(Vec2 { 500.0f, 450.0f }, 38.0f);
   cir1.withColor(SDL_FColor {1.0f, 0.0f, 0.0f, 1.0f});
   SDFObject cir2 = SDFObject::circle(Vec2 { 300.0f, 200.0f }, 50.0f);
-  cir2.withColor(SDL_FColor {0.0f, 0.0f, 1.0f, 1.0f});
-  SDFObject rect1 = SDFObject::rect(Vec2 { 400.0f, 200.0f }, Vec2 { 100.0f, 100.0f });
-  rect1.withColor(SDL_FColor {0.0f, 1.0f, 0.0f, 0.5f});
+  cir2.withColor(SDL_FColor {0.0f, 0.5f, 0.5f, 1.0f});
+  SDFObject rect1 = SDFObject::rect(Vec2 { 400.0f, 200.0f }, Vec2 { 50.0f, 60.0f });
+  rect1.withColor(SDL_FColor {0.0f, 1.0f, 0.0f, 0.8f});
+  rect1.withRoundCorner(10.0f);
   state.sdfObjects.push_back(cir1);
   state.sdfObjects.push_back(cir2);
   state.sdfObjects.push_back(rect1);
@@ -102,7 +103,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   state.lifetime = SDL_GetTicks();
   if (state.printFps && state.timeSinceLastFps > 600) {
     state.timeSinceLastFps = 0;
-    float fps = 9999.0f;
+    float fps = 1001.0f;
     if (delta != 0) fps = 1000.0f / delta;
     SDL_Log("FPS: %.2f", fps);
   } else {
@@ -110,10 +111,10 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   }
 
   int err = state.renderer->renderToScreen(SDFSysData {
-    .screenSize = Vec2(800.0f, 600.0f),
-    .lightPos = Vec2(400.0f + 100.0f * SDL_sinf(0.002f * state.lifetime), 100.0f),
+    .screenSize = Vec2(0.0f),
+    .lightPos = Vec2(0.0f),
     .lightColor = SDL_FColor{0.2f, 0.2f, 0.5f, 0.8f},
-    .lightDist = 500.0f,
+    .lightDist = 0.0f,
   });
   if (err != 0) {
     SDL_Log("Render to screen failure");
