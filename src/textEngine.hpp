@@ -1,7 +1,7 @@
 #pragma once
 
 #include <SDL3/SDL.h>
-#include <freetype2/ft2build.h>
+#include <ft2build.h>
 #include <freetype/freetype.h>
 
 namespace App {

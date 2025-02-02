@@ -14,7 +14,7 @@
         "-IC:\\Programs\\SDL3\\include", 
         "-LC:\\Programs\\SDL3\\lib",
         "-IC:/Programs/freetype-2.13.3/include",
-        "-LC:/Programs/freetype-2.13.3/win32",
+        "-LC:/Programs/freetype-2.13.3/win64",
         "-lSDL3",
         "-lfreetype",
       ],
