@@ -49,15 +49,17 @@ namespace App {
     SDL_FColor lightColor;
     float lightDist;
   };
-  class SDFRenderer {
+  class SDFPipeline {
   public:
-    SDFRenderer(SDL_Window* window, SDL_GPUDevice *gpu);
-    SDL_Window *win;
+    SDFPipeline(SDL_GPUTextureFormat targetFormat, SDL_GPUDevice *gpu);
     SDL_GPUDevice *device;
     SDL_GPUGraphicsPipeline *pipeline = NULL;
     SDL_GPUBuffer *objsBuffer = NULL;
     void refreshObjects(std::vector<SDFObject> objs);
-    int renderToScreen(SDFSysData sys);
+    void render(
+      SDL_GPUCommandBuffer *cmdBuf, SDL_GPURenderPass *pass,
+      SDL_GPUTexture* target, SDFSysData sys
+    );
     void destroy();
   };
 }

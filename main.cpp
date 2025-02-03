@@ -53,10 +53,11 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
   SDL_AppResult setupRes = setupSDL(state);
   if (setupRes != SDL_APP_CONTINUE) return setupRes;
+  SDL_GPUTextureFormat scFormat = SDL_GetGPUSwapchainTextureFormat(state.gpu, state.window);
 
   state.textEngine.init(state.gpu);
   state.textEngine.loadFont("assets/Helvetica.ttf", 32);
-  state.renderer = new SDFRenderer(state.window, state.gpu);
+  state.sdfp = new SDFPipeline(scFormat, state.gpu);
 
   SDFObject cir1 = SDFObject::circle(Vec2 { 500.0f, 450.0f }, 38.0f);
   cir1.withColor(SDL_FColor {1.0f, 0.0f, 0.0f, 1.0f});
@@ -71,7 +72,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   state.sdfObjects.push_back(cir2);
   state.sdfObjects.push_back(rect1);
   state.sdfObjects.push_back(tri1);
-  state.renderer->refreshObjects(state.sdfObjects);
+  state.sdfp->refreshObjects(state.sdfObjects);
 
   return SDL_APP_CONTINUE;
 }
@@ -125,16 +126,42 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     state.timeSinceLastFps += delta;
   }
 
-  int err = state.renderer->renderToScreen(SDFSysData {
-    .screenSize = Vec2(0.0f),
-    .lightPos = Vec2(0.0f),
-    .lightColor = SDL_FColor{0.2f, 0.2f, 0.5f, 0.8f},
-    .lightDist = 0.0f,
-  });
-  if (err != 0) {
-    SDL_Log("Render to screen failure");
-    return SDL_APP_FAILURE;
-  }
+  // acquire command buffer
+	SDL_GPUCommandBuffer *cmdBuf = SDL_AcquireGPUCommandBuffer(state.gpu);
+	// acquire swapchain
+	SDL_GPUTexture* swapchain = NULL;
+	SDL_AcquireGPUSwapchainTexture(cmdBuf, state.window, &swapchain, NULL, NULL);
+	if (swapchain == NULL) {
+		// if swapchain == NULL, its not ready yet - skip render
+		SDL_CancelGPUCommandBuffer(cmdBuf);
+		return SDL_APP_CONTINUE;
+	}
+	// define render pass
+	SDL_GPURenderPass *pass = SDL_BeginGPURenderPass(cmdBuf, new SDL_GPUColorTargetInfo {
+		.texture = swapchain,
+		.clear_color = SDL_FColor{ 0.04f, 0.02f, 0.08f, 1.0f },
+		.load_op = SDL_GPU_LOADOP_CLEAR,
+		.store_op = SDL_GPU_STOREOP_STORE,
+	}, 1, NULL);
+
+  // start render pipelines
+  state.sdfp->render(
+    cmdBuf, pass, swapchain,
+    SDFSysData {
+      .screenSize = Vec2(0.0f),
+      .lightPos = Vec2(0.0f),
+      .lightColor = SDL_FColor{0.2f, 0.2f, 0.5f, 0.8f},
+      .lightDist = 0.0f,
+    }
+  );
+
+  // finish render pass
+	SDL_EndGPURenderPass(pass);
+	if (!SDL_SubmitGPUCommandBuffer(cmdBuf)) {
+		SDL_Log("Failed to submit GPU command %s", SDL_GetError());
+		return SDL_APP_FAILURE;
+	};
+
   return SDL_APP_CONTINUE;
 }
 
@@ -142,9 +169,9 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 void SDL_AppQuit(void *appstate, SDL_AppResult result) {
   AppState& state = *static_cast<AppState*>(appstate);
   SDL_Log("Closing SDL3");
-  state.renderer->destroy();
   state.textEngine.destroy();
-  delete state.renderer;
+  state.sdfp->destroy();
+  delete state.sdfp;
   SDL_ReleaseWindowFromGPUDevice(state.gpu, state.window);
   SDL_DestroyGPUDevice(state.gpu);
   SDL_DestroyWindow(state.window);

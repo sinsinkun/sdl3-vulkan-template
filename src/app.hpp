@@ -16,7 +16,7 @@ namespace App {
     TextEngine textEngine;
     // SDF render
     std::vector<SDFObject> sdfObjects;
-    SDFRenderer *renderer = NULL;
+    SDFPipeline *sdfp = NULL;
     // FPS debug helpers
     Uint64 lifetime = 0;
     Uint64 timeSinceLastFps = 0;
