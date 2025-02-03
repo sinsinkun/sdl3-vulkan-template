@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <SDL3/SDL.h>
-#include "util.hpp"
+#include "../util.hpp"
 
 // generic render pipeline
 namespace App {

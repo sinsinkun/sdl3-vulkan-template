@@ -4,8 +4,7 @@
 #include <SDL3/SDL.h>
 
 #include "util.hpp"
-#include "renderer.hpp"
-#include "sdfRenderer.hpp"
+#include "sdfPipeline.hpp"
 #include "textEngine.hpp"
 
 namespace App {

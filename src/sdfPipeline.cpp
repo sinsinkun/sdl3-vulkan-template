@@ -1,4 +1,4 @@
-#include "sdfRenderer.hpp"
+#include "sdfPipeline.hpp"
 
 using namespace App;
 
@@ -110,7 +110,7 @@ SDFRenderObject SDFObject::renderObject() {
 SDFPipeline::SDFPipeline(SDL_GPUTextureFormat targetFormat, SDL_GPUDevice *gpu) {
   device = gpu;
   // create shaders
-  SDL_GPUShader *vertShader = App::loadShader(device, "sdf.vert", 0, 0, 0, 0);
+  SDL_GPUShader *vertShader = App::loadShader(device, "fullScreenQuad.vert", 0, 0, 0, 0);
   SDL_GPUShader *fragShader = App::loadShader(device, "sdf.frag", 0, 1, 1, 0);
   // create pipeline
 	pipeline = SDL_CreateGPUGraphicsPipeline(device, new SDL_GPUGraphicsPipelineCreateInfo {
