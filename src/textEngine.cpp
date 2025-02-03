@@ -68,17 +68,6 @@ FT_Error TextEngine::init(SDL_GPUDevice *device) {
   }
   SDL_Log("Initialized Freetype");
 
-  screenTx = SDL_CreateGPUTexture(device, new SDL_GPUTextureCreateInfo {
-    .type = SDL_GPU_TEXTURETYPE_2D,
-    .format = SDL_GPU_TEXTUREFORMAT_R8_UINT,
-    .usage = SDL_GPU_TEXTUREUSAGE_GRAPHICS_STORAGE_READ,
-    .width = 400,
-    .height = 200,
-    .layer_count_or_depth = 1,
-    .num_levels = 1,
-  });
-  SDL_SetGPUTextureName(device, screenTx, "Text Texture");
-
   return 0;
 }
 
@@ -133,7 +122,6 @@ void TextEngine::drawGlyphToTexture(SDL_GPUTexture *tx, char c) {
 
 void TextEngine::destroy() {
   font.destroy();
-  SDL_ReleaseGPUTexture(device, screenTx);
   FT_Done_FreeType(ftlib);
 }
 

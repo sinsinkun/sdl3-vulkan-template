@@ -58,6 +58,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   state.textEngine.init(state.gpu);
   state.textEngine.loadFont("assets/Helvetica.ttf", 32);
   state.sdfp = new SDFPipeline(scFormat, state.gpu);
+  state.overlayp = new OverlayPipeline(scFormat, state.gpu, &state.textEngine);
 
   SDFObject cir1 = SDFObject::circle(Vec2 { 500.0f, 450.0f }, 38.0f);
   cir1.withColor(SDL_FColor {1.0f, 0.0f, 0.0f, 1.0f});
@@ -92,7 +93,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
         state.printFps = true;
       }
       if (event->key.scancode == SDL_SCANCODE_A) {
-        state.textEngine.drawGlyphToTexture(state.textEngine.screenTx, 'a');
+        // state.textEngine.drawGlyphToTexture(state.textEngine.screenTx, 'a');
       }
       break;
     case SDL_EVENT_KEY_UP:
@@ -167,6 +168,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
       .lightDist = 0.0f,
     }
   );
+  state.overlayp->render(cmdBuf, pass, swapchain, Vec2(0.0f));
 
   // finish render pass
 	SDL_EndGPURenderPass(pass);
@@ -185,6 +187,8 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result) {
   state.textEngine.destroy();
   state.sdfp->destroy();
   delete state.sdfp;
+  state.overlayp->destroy();
+  delete state.overlayp;
   SDL_ReleaseWindowFromGPUDevice(state.gpu, state.window);
   SDL_DestroyGPUDevice(state.gpu);
   SDL_DestroyWindow(state.window);

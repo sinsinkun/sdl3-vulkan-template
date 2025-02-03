@@ -33,7 +33,6 @@ namespace App {
   public:
     FT_Library ftlib;
     SDL_GPUDevice *device = NULL;
-    SDL_GPUTexture *screenTx = NULL;
     FT_Error init(SDL_GPUDevice *device);
     FT_Error loadFont(const char *filepathname, int fontSize);
     void drawGlyphToTexture(SDL_GPUTexture *tx, char c);
