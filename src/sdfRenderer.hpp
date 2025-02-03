@@ -31,6 +31,8 @@ namespace App {
     void withColor(SDL_FColor color);
     void withRoundCorner(float radius);
     void asOutline(float thickness);
+    void updatePositionDelta(Vec2 delta);
+    void updatePosition(Vec2 center);
     SDFRenderObject renderObject();
   protected:
     SDFObjectType type = SDF_None;

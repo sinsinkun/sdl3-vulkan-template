@@ -9,11 +9,11 @@
 #include "textEngine.hpp"
 
 namespace App {
-  class AppState {
-  public:
+  struct AppState {
     SDL_Window *window = NULL;
     SDL_GPUDevice *gpu = NULL;
     TextEngine textEngine;
+    Vec2 mousePosScreenSpace = Vec2(0.0f);
     // SDF render
     std::vector<SDFObject> sdfObjects;
     SDFPipeline *sdfp = NULL;

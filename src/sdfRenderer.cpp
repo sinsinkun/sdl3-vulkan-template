@@ -57,6 +57,19 @@ void SDFObject::asOutline(float thickness) {
 	this->thickness = thickness;
 }
 
+void SDFObject::updatePositionDelta(Vec2 delta) {
+	if (type == SDF_Line || type == SDF_Triangle) {
+		v2 = v2 + delta;
+		v3 = v3 + delta;
+	}
+	center = center + delta;
+}
+
+void SDFObject::updatePosition(Vec2 newCenter) {
+	Vec2 delta = newCenter - center;
+	updatePositionDelta(delta);
+}
+
 SDFRenderObject SDFObject::renderObject() {
 	Uint32 objType = 0;
 	switch (type) {

@@ -72,7 +72,6 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   state.sdfObjects.push_back(cir2);
   state.sdfObjects.push_back(rect1);
   state.sdfObjects.push_back(tri1);
-  state.sdfp->refreshObjects(state.sdfObjects);
 
   return SDL_APP_CONTINUE;
 }
@@ -101,6 +100,9 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
         state.printFps = false;
       }
       break;
+    case SDL_EVENT_MOUSE_MOTION:
+      state.mousePosScreenSpace = Vec2(event->motion.x, event->motion.y);
+      break;
     case SDL_EVENT_TEXT_INPUT:
       break;
     default:
@@ -126,6 +128,15 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     state.timeSinceLastFps += delta;
   }
 
+  // update sdf objects
+  SDFObject* obj0 = &state.sdfObjects.at(0);
+  obj0->updatePosition(state.mousePosScreenSpace);
+  SDFObject* obj1 = &state.sdfObjects.at(1);
+  obj1->updatePosition(Vec2(
+    300.0f + 100.0f * SDL_sin(0.002f * state.lifetime),
+    300.0f + 100.0f * SDL_cos(0.002f * state.lifetime)
+  ));
+
   // acquire command buffer
 	SDL_GPUCommandBuffer *cmdBuf = SDL_AcquireGPUCommandBuffer(state.gpu);
 	// acquire swapchain
@@ -144,6 +155,8 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 		.store_op = SDL_GPU_STOREOP_STORE,
 	}, 1, NULL);
 
+  // update render objects in sync with render
+  state.sdfp->refreshObjects(state.sdfObjects);
   // start render pipelines
   state.sdfp->render(
     cmdBuf, pass, swapchain,
