@@ -71,7 +71,7 @@ FT_Error TextEngine::init(SDL_GPUDevice *device) {
   screenTx = SDL_CreateGPUTexture(device, new SDL_GPUTextureCreateInfo {
     .type = SDL_GPU_TEXTURETYPE_2D,
     .format = SDL_GPU_TEXTUREFORMAT_R8_UINT,
-    .usage = SDL_GPU_TEXTUREUSAGE_COLOR_TARGET,
+    .usage = SDL_GPU_TEXTUREUSAGE_GRAPHICS_STORAGE_READ,
     .width = 400,
     .height = 200,
     .layer_count_or_depth = 1,

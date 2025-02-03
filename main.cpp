@@ -6,12 +6,8 @@
 
 using namespace App;
 
-// initialization of app
-SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
+SDL_AppResult setupSDL(AppState& state) {
   SDL_SetAppMetadata("SDL-Test", "1.0", "com.example.sdl-test");
-
-  *appstate = new AppState;
-  AppState& state = *static_cast<AppState*>(*appstate);
 
   if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
     SDL_Log("SDL_Init(SDL_INIT_VIDEO) failed: %s", SDL_GetError());
@@ -46,6 +42,17 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     return SDL_APP_FAILURE;
   }
   SDL_Log("Claimed window for GPU device");
+
+  return SDL_APP_CONTINUE;
+}
+
+// initialization of app
+SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
+  *appstate = new AppState;
+  AppState& state = *static_cast<AppState*>(*appstate);
+
+  SDL_AppResult setupRes = setupSDL(state);
+  if (setupRes != SDL_APP_CONTINUE) return setupRes;
 
   state.textEngine.init(state.gpu);
   state.textEngine.loadFont("assets/Helvetica.ttf", 32);
