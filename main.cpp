@@ -56,7 +56,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   SDL_GPUTextureFormat scFormat = SDL_GetGPUSwapchainTextureFormat(state.gpu, state.window);
 
   state.textEngine.init(state.gpu);
-  state.textEngine.loadFont("assets/Helvetica.ttf", 32);
+  state.textEngine.loadFont("assets/Helvetica.ttf", 64);
   state.sdfp = new SDFPipeline(scFormat, state.gpu);
   state.overlayp = new OverlayPipeline(scFormat, state.gpu, &state.textEngine);
 
@@ -93,7 +93,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
         state.printFps = true;
       }
       if (event->key.scancode == SDL_SCANCODE_A) {
-        // state.textEngine.drawGlyphToTexture(state.textEngine.screenTx, 'a');
+        state.textEngine.drawGlyphToTexture(state.overlayp->tx, 'a');
       }
       break;
     case SDL_EVENT_KEY_UP:
@@ -151,7 +151,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 	// define render pass
 	SDL_GPURenderPass *pass = SDL_BeginGPURenderPass(cmdBuf, new SDL_GPUColorTargetInfo {
 		.texture = swapchain,
-		.clear_color = SDL_FColor{ 0.04f, 0.02f, 0.08f, 1.0f },
+		.clear_color = SDL_FColor{ 0.1f, 0.1f, 0.2f, 1.0f },
 		.load_op = SDL_GPU_LOADOP_CLEAR,
 		.store_op = SDL_GPU_STOREOP_STORE,
 	}, 1, NULL);
@@ -168,7 +168,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
       .lightDist = 0.0f,
     }
   );
-  state.overlayp->render(cmdBuf, pass, swapchain, Vec2(0.0f));
+  state.overlayp->render(cmdBuf, pass, swapchain, Vec2(800.0f, 600.0f));
 
   // finish render pass
 	SDL_EndGPURenderPass(pass);

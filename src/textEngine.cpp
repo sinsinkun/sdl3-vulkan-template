@@ -40,6 +40,7 @@ void FontCache::cacheGlyph(FT_ULong c) {
     .offsetTop = slot->bitmap_top,
     .advance = (Uint32)slot->advance.x,
   };
+  SDL_Log("Cached glyph %c: (%d, %d, %d, %d)", c, fc.pxHeight, fc.pxHeight, fc.bufferSize, fc.advance);
   chars.insert(std::pair<FT_ULong, FontChar>(c, fc));
 }
 
@@ -73,8 +74,8 @@ FT_Error TextEngine::init(SDL_GPUDevice *device) {
 
 FT_Error TextEngine::loadFont(const char *filepathname, int fontSize) {
   FT_Error err = font.init(&ftlib, filepathname, fontSize);
-  font.cacheGlyph('&');
-  font.cacheGlyph(0xF09F9881); // U+1F601: smiley face
+  // font.cacheGlyph('&');
+  // font.cacheGlyph(0xF09F9881); // U+1F601: smiley face
   return err;
 }
 
@@ -92,6 +93,9 @@ void TextEngine::drawGlyphToTexture(SDL_GPUTexture *tx, char c) {
       .size = ch->bufferSize
     }
   );
+  Uint8* transBufPtr = static_cast<Uint8*>(SDL_MapGPUTransferBuffer(device, transBuf, false));
+  SDL_memcpy(transBufPtr, ch->buffer, ch->bufferSize);
+  SDL_UnmapGPUTransferBuffer(device, transBuf);
 
   SDL_GPUCommandBuffer *cmdBuf = SDL_AcquireGPUCommandBuffer(device);
   SDL_GPUCopyPass *pass = SDL_BeginGPUCopyPass(cmdBuf);
@@ -106,8 +110,8 @@ void TextEngine::drawGlyphToTexture(SDL_GPUTexture *tx, char c) {
     },
     new SDL_GPUTextureRegion {
       .texture = tx,
-      .x = 5,
-      .y = 5 + ch->pxHeight - ch->offsetTop,
+      .x = 100,
+      .y = 200,
       .w = ch->pxWidth,
       .h = ch->pxHeight,
       .d = 1,
