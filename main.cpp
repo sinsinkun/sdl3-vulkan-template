@@ -6,12 +6,8 @@
 
 using namespace App;
 
-// initialization of app
-SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
+SDL_AppResult setupSDL(AppState& state) {
   SDL_SetAppMetadata("SDL-Test", "1.0", "com.example.sdl-test");
-
-  *appstate = new AppState;
-  AppState& state = *static_cast<AppState*>(*appstate);
 
   if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
     SDL_Log("SDL_Init(SDL_INIT_VIDEO) failed: %s", SDL_GetError());
@@ -47,7 +43,19 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   }
   SDL_Log("Claimed window for GPU device");
 
-  state.renderer = new SDFRenderer(state.window, state.gpu);
+  return SDL_APP_CONTINUE;
+}
+
+// initialization of app
+SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
+  *appstate = new AppState;
+  AppState& state = *static_cast<AppState*>(*appstate);
+
+  SDL_AppResult setupRes = setupSDL(state);
+  if (setupRes != SDL_APP_CONTINUE) return setupRes;
+  SDL_GPUTextureFormat scFormat = SDL_GetGPUSwapchainTextureFormat(state.gpu, state.window);
+
+  state.sdfp = new SDFPipeline(scFormat, state.gpu);
 
   SDFObject cir1 = SDFObject::circle(Vec2 { 500.0f, 450.0f }, 38.0f);
   cir1.withColor(SDL_FColor {1.0f, 0.0f, 0.0f, 1.0f});
@@ -62,7 +70,6 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   state.sdfObjects.push_back(cir2);
   state.sdfObjects.push_back(rect1);
   state.sdfObjects.push_back(tri1);
-  state.renderer->refreshObjects(state.sdfObjects);
 
   return SDL_APP_CONTINUE;
 }
@@ -87,6 +94,9 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
       if (event->key.scancode == SDL_SCANCODE_F1) {
         state.printFps = false;
       }
+      break;
+    case SDL_EVENT_MOUSE_MOTION:
+      state.mousePosScreenSpace = Vec2(event->motion.x, event->motion.y);
       break;
     case SDL_EVENT_TEXT_INPUT:
       break;
@@ -113,16 +123,53 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     state.timeSinceLastFps += delta;
   }
 
-  int err = state.renderer->renderToScreen(SDFSysData {
-    .screenSize = Vec2(0.0f),
-    .lightPos = Vec2(0.0f),
-    .lightColor = SDL_FColor{0.2f, 0.2f, 0.5f, 0.8f},
-    .lightDist = 0.0f,
-  });
-  if (err != 0) {
-    SDL_Log("Render to screen failure");
-    return SDL_APP_FAILURE;
-  }
+  // update sdf objects
+  SDFObject* obj0 = &state.sdfObjects.at(0);
+  obj0->updatePosition(state.mousePosScreenSpace);
+  SDFObject* obj1 = &state.sdfObjects.at(1);
+  obj1->updatePosition(Vec2(
+    300.0f + 100.0f * SDL_sin(0.002f * state.lifetime),
+    300.0f + 100.0f * SDL_cos(0.002f * state.lifetime)
+  ));
+
+  // acquire command buffer
+	SDL_GPUCommandBuffer *cmdBuf = SDL_AcquireGPUCommandBuffer(state.gpu);
+	// acquire swapchain
+	SDL_GPUTexture* swapchain = NULL;
+	SDL_AcquireGPUSwapchainTexture(cmdBuf, state.window, &swapchain, NULL, NULL);
+	if (swapchain == NULL) {
+		// if swapchain == NULL, its not ready yet - skip render
+		SDL_CancelGPUCommandBuffer(cmdBuf);
+		return SDL_APP_CONTINUE;
+	}
+	// define render pass
+	SDL_GPURenderPass *pass = SDL_BeginGPURenderPass(cmdBuf, new SDL_GPUColorTargetInfo {
+		.texture = swapchain,
+		.clear_color = SDL_FColor{ 0.1f, 0.1f, 0.2f, 1.0f },
+		.load_op = SDL_GPU_LOADOP_CLEAR,
+		.store_op = SDL_GPU_STOREOP_STORE,
+	}, 1, NULL);
+
+  // update render objects in sync with render
+  state.sdfp->refreshObjects(state.sdfObjects);
+  // start render pipelines
+  state.sdfp->render(
+    cmdBuf, pass, swapchain,
+    SDFSysData {
+      .screenSize = Vec2(0.0f),
+      .lightPos = Vec2(0.0f),
+      .lightColor = SDL_FColor{0.2f, 0.2f, 0.5f, 0.8f},
+      .lightDist = 0.0f,
+    }
+  );
+
+  // finish render pass
+	SDL_EndGPURenderPass(pass);
+	if (!SDL_SubmitGPUCommandBuffer(cmdBuf)) {
+		SDL_Log("Failed to submit GPU command %s", SDL_GetError());
+		return SDL_APP_FAILURE;
+	};
+
   return SDL_APP_CONTINUE;
 }
 
@@ -130,8 +177,8 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 void SDL_AppQuit(void *appstate, SDL_AppResult result) {
   AppState& state = *static_cast<AppState*>(appstate);
   SDL_Log("Closing SDL3");
-  state.renderer->destroy();
-  delete state.renderer;
+  state.sdfp->destroy();
+  delete state.sdfp;
   SDL_ReleaseWindowFromGPUDevice(state.gpu, state.window);
   SDL_DestroyGPUDevice(state.gpu);
   SDL_DestroyWindow(state.window);

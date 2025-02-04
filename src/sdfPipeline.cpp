@@ -1,4 +1,4 @@
-#include "sdfRenderer.hpp"
+#include "sdfPipeline.hpp"
 
 using namespace App;
 
@@ -57,6 +57,19 @@ void SDFObject::asOutline(float thickness) {
 	this->thickness = thickness;
 }
 
+void SDFObject::updatePositionDelta(Vec2 delta) {
+	if (type == SDF_Line || type == SDF_Triangle) {
+		v2 = v2 + delta;
+		v3 = v3 + delta;
+	}
+	center = center + delta;
+}
+
+void SDFObject::updatePosition(Vec2 newCenter) {
+	Vec2 delta = newCenter - center;
+	updatePositionDelta(delta);
+}
+
 SDFRenderObject SDFObject::renderObject() {
 	Uint32 objType = 0;
 	switch (type) {
@@ -92,13 +105,12 @@ SDFRenderObject SDFObject::renderObject() {
 	};
 }
 
-#pragma region SDFRenderer
+#pragma region SDFPipeline
 
-SDFRenderer::SDFRenderer(SDL_Window* window, SDL_GPUDevice *gpu) {
-	win = window;
+SDFPipeline::SDFPipeline(SDL_GPUTextureFormat targetFormat, SDL_GPUDevice *gpu) {
   device = gpu;
   // create shaders
-  SDL_GPUShader *vertShader = App::loadShader(device, "sdf.vert", 0, 0, 0, 0);
+  SDL_GPUShader *vertShader = App::loadShader(device, "fullScreenQuad.vert", 0, 0, 0, 0);
   SDL_GPUShader *fragShader = App::loadShader(device, "sdf.frag", 0, 1, 1, 0);
   // create pipeline
 	pipeline = SDL_CreateGPUGraphicsPipeline(device, new SDL_GPUGraphicsPipelineCreateInfo {
@@ -111,7 +123,7 @@ SDFRenderer::SDFRenderer(SDL_Window* window, SDL_GPUDevice *gpu) {
 		},
 		.target_info = SDL_GPUGraphicsPipelineTargetInfo {
 			.color_target_descriptions = new SDL_GPUColorTargetDescription {
-				.format = SDL_GetGPUSwapchainTextureFormat(device, window),
+				.format = targetFormat,
 				.blend_state = SDL_GPUColorTargetBlendState {
 					.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
 					.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
@@ -135,7 +147,7 @@ SDFRenderer::SDFRenderer(SDL_Window* window, SDL_GPUDevice *gpu) {
   SDL_ReleaseGPUShader(device, fragShader);
 }
 
-void SDFRenderer::refreshObjects(std::vector<SDFObject> objs) {
+void SDFPipeline::refreshObjects(std::vector<SDFObject> objs) {
 	Uint32 objsSize = sizeof(SDFRenderObject) * objs.size();
 	// update object buffer with new data
 	SDL_GPUTransferBuffer *transferBuf = SDL_CreateGPUTransferBuffer(
@@ -177,44 +189,17 @@ void SDFRenderer::refreshObjects(std::vector<SDFObject> objs) {
 	SDL_ReleaseGPUTransferBuffer(device, transferBuf);
 }
 
-int SDFRenderer::renderToScreen(SDFSysData sys) {
-	// acquire command buffer
-	SDL_GPUCommandBuffer *cmdBuf = SDL_AcquireGPUCommandBuffer(device);
-
-	// acquire swapchain
-	SDL_GPUTexture* swapchain = NULL;
-	SDL_AcquireGPUSwapchainTexture(cmdBuf, win, &swapchain, NULL, NULL);
-	if (swapchain == NULL) {
-		// if swapchain == NULL, its not ready yet - skip render
-		SDL_CancelGPUCommandBuffer(cmdBuf);
-		return 0;
-	}
-
-	// define render pass
-	SDL_GPURenderPass *pass = SDL_BeginGPURenderPass(cmdBuf, new SDL_GPUColorTargetInfo {
-		.texture = swapchain,
-		.clear_color = SDL_FColor{ 0.04f, 0.02f, 0.08f, 1.0f },
-		.load_op = SDL_GPU_LOADOP_CLEAR,
-		.store_op = SDL_GPU_STOREOP_STORE,
-	}, 1, NULL);
-
-	// bind pipeline to render
+void SDFPipeline::render(
+	SDL_GPUCommandBuffer *cmdBuf, SDL_GPURenderPass *pass,
+	SDL_GPUTexture* target, SDFSysData sys
+) {
 	SDL_BindGPUGraphicsPipeline(pass, pipeline);
 	SDL_PushGPUFragmentUniformData(cmdBuf, 0, &sys, sizeof(SDFSysData));
 	SDL_BindGPUFragmentStorageBuffers(pass, 0, &objsBuffer, 1);
 	SDL_DrawGPUPrimitives(pass, 6, 1, 0, 0);
-
-	// finish render pass
-	SDL_EndGPURenderPass(pass);
-	if (!SDL_SubmitGPUCommandBuffer(cmdBuf)) {
-		SDL_Log("Failed to submit GPU command %s", SDL_GetError());
-		return 2;
-	};
-
-	return 0;
 }
 
-void SDFRenderer::destroy() {
+void SDFPipeline::destroy() {
 	SDL_ReleaseGPUBuffer(device, objsBuffer);
   SDL_ReleaseGPUGraphicsPipeline(device, pipeline);
 }
