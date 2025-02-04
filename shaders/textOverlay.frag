@@ -12,6 +12,6 @@ layout(location = 0) out vec4 outColor;
 
 void main() {
   ivec2 pos = ivec2(gl_FragCoord.xy);
-  float v = imageLoad(texture0, pos).r;
+  float v = imageLoad(texture0, pos).r / 255.0;
   outColor = vec4(1.0, 1.0, 1.0, v);
 }
