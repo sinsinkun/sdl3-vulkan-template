@@ -30,7 +30,6 @@ void FontCache::cacheGlyph(FT_ULong c) {
   }
 
   FT_GlyphSlot slot = face->glyph;
-  slot->bitmap.palette;
   FontChar fc {
     .buffer = slot->bitmap.buffer,
     .bufferSize = slot->bitmap.width * slot->bitmap.rows,
@@ -38,9 +37,11 @@ void FontCache::cacheGlyph(FT_ULong c) {
     .pxHeight = slot->bitmap.rows,
     .offsetLeft = slot->bitmap_left,
     .offsetTop = slot->bitmap_top,
-    .advance = (Uint32)slot->advance.x,
+    .advance = (Uint32)(slot->advance.x / 64),
   };
-  SDL_Log("Cached glyph %c: (%d, %d, %d, %d)", c, fc.pxHeight, fc.pxHeight, fc.bufferSize, fc.advance);
+  SDL_Log("Cached glyph %c: (%d, %d, %d, %d, %d)", 
+    c, fc.pxHeight, fc.pxHeight, fc.offsetLeft, fc.offsetTop, fc.advance
+  );
   chars.insert(std::pair<FT_ULong, FontChar>(c, fc));
 }
 
@@ -110,8 +111,8 @@ void TextEngine::drawGlyphToTexture(SDL_GPUTexture *tx, char c) {
     },
     new SDL_GPUTextureRegion {
       .texture = tx,
-      .x = 100,
-      .y = 200,
+      .x = 5,
+      .y = 5,
       .w = ch->pxWidth,
       .h = ch->pxHeight,
       .d = 1,

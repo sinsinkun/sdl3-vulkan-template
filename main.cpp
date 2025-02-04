@@ -56,7 +56,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   SDL_GPUTextureFormat scFormat = SDL_GetGPUSwapchainTextureFormat(state.gpu, state.window);
 
   state.textEngine.init(state.gpu);
-  state.textEngine.loadFont("assets/Helvetica.ttf", 64);
+  state.textEngine.loadFont("assets/Helvetica.ttf", 240);
   state.sdfp = new SDFPipeline(scFormat, state.gpu);
   state.overlayp = new OverlayPipeline(scFormat, state.gpu, &state.textEngine);
 
@@ -93,7 +93,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
         state.printFps = true;
       }
       if (event->key.scancode == SDL_SCANCODE_A) {
-        state.textEngine.drawGlyphToTexture(state.overlayp->tx, 'a');
+        state.textEngine.drawGlyphToTexture(state.overlayp->tx, '&');
       }
       break;
     case SDL_EVENT_KEY_UP:
