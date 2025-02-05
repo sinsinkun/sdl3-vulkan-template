@@ -73,6 +73,50 @@ SDL_GPUShader* App::loadShader(
   return shader;
 }
 
+// create vertex input state corresponding to RenderVertex shape
+SDL_GPUVertexInputState App::createVertexInputState() {
+	SDL_GPUVertexInputState state;
+
+	state.vertex_buffer_descriptions = new SDL_GPUVertexBufferDescription {
+		.slot = 0,
+		.pitch = sizeof(RenderVertex),
+		.input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
+		.instance_step_rate = 0,
+	};
+	state.num_vertex_buffers = 1;
+	
+	SDL_GPUVertexAttribute vAttr0 = {
+		.location = 0,
+		.buffer_slot = 0,
+		.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+		.offset = 0,
+	};
+	SDL_GPUVertexAttribute vAttr1 = {
+		.location = 1,
+		.buffer_slot = 0,
+		.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
+		.offset = sizeof(float) * 3,
+	};
+	SDL_GPUVertexAttribute vAttr2 = {
+		.location = 2,
+		.buffer_slot = 0,
+		.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+		.offset = sizeof(float) * 5,
+	};
+	SDL_GPUVertexAttribute vAttr3 = {
+		.location = 3,
+		.buffer_slot = 0,
+		.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4,
+		.offset = sizeof(float) * 8,
+	};
+	state.vertex_attributes = new SDL_GPUVertexAttribute[4] {
+		vAttr0, vAttr1, vAttr2, vAttr3
+	};
+	state.num_vertex_attributes = 4;
+
+	return state;
+}
+
 Mat4x4::Mat4x4(
   float i0, float i1, float i2, float i3,
   float i4, float i5, float i6, float i7,
@@ -103,6 +147,15 @@ float* Mat4x4::colMajor() {
     e03, e13, e23, e33,
   };
   return cm;
+}
+
+Mat4x4 App::identityMat4() {
+	return Mat4x4(
+		1.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 1.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	);
 }
 
 Mat4x4 App::translationMat4(float x, float y, float z) {

@@ -13,7 +13,10 @@
         "${fileDirname}\\build\\debug.exe",
         "-IC:\\Programs\\SDL3\\include", 
         "-LC:\\Programs\\SDL3\\lib",
+        "-IC:\\Programs\\SDL3_ttf\\include", 
+        "-LC:\\Programs\\SDL3_ttf\\lib",
         "-lSDL3",
+        "-lSDL3_ttf"
       ],
       "options": {
         "cwd": "${fileDirname}"

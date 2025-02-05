@@ -2,14 +2,18 @@
 
 #include <vector>
 #include <SDL3/SDL.h>
+#include <SDL3_ttf/SDL_ttf.h>
 
 #include "util.hpp"
 #include "sdfPipeline.hpp"
+#include "overlayPipeline.hpp"
 
 namespace App {
   struct AppState {
     SDL_Window *window = NULL;
     SDL_GPUDevice *gpu = NULL;
+    TTF_TextEngine *textEngine = NULL;
+    OverlayPipeline *overlayp = NULL;
     Vec2 mousePosScreenSpace = Vec2(0.0f);
     // SDF render
     std::vector<SDFObject> sdfObjects;

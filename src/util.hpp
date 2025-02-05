@@ -4,10 +4,24 @@
 #include <SDL3/SDL.h>
 
 namespace App {
+  enum GPUPrimitiveType { Point, Line, Triangle };
+  struct RenderVertex {
+    float x, y, z;
+    float u, v;
+    float nx, ny, nz;
+    float r, g, b, a;
+  };
+  struct RenderObject {
+    SDL_GPUBuffer *vertexBuffer = NULL;
+    SDL_GPUBuffer *indexBuffer = NULL;
+    int vertexCount = 0;
+    int indexCount = 0;
+  };
   SDL_GPUShader* loadShader(
     SDL_GPUDevice *device, const char* filename, Uint32 samplerCount,
     Uint32 uniformBufferCount, Uint32 storageBufferCount, Uint32 storageTextureCount
   );
+  SDL_GPUVertexInputState createVertexInputState();
   struct Vec2 {
     float x, y;
     Vec2(float a) { x = a; y = a; }
@@ -80,6 +94,7 @@ namespace App {
     float* rowMajor();
     float* colMajor();
   };
+  Mat4x4 identityMat4();
   // Mat4x4 perspectiveMat4(float fovY, float aspectRatio, float near, float far);
   // Mat4x4 orthoMat4(float left, float right, float top, float bottom, float near, float far);
   Mat4x4 translationMat4(float x, float y, float z);

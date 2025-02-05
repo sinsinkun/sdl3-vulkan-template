@@ -43,6 +43,18 @@ SDL_AppResult setupSDL(AppState& state) {
   }
   SDL_Log("Claimed window for GPU device");
 
+  // SDL_ttf
+  if (!TTF_Init()) {
+    SDL_Log("Failed to initialize SDL_ttf: %s", SDL_GetError());
+    return SDL_APP_FAILURE;
+  };
+  state.textEngine = TTF_CreateGPUTextEngine(state.gpu);
+  if (state.textEngine == NULL) {
+    SDL_Log("Failed to create text engine: %s", SDL_GetError());
+    return SDL_APP_FAILURE;
+  }
+  SDL_Log("Started text engine");
+
   return SDL_APP_CONTINUE;
 }
 
@@ -53,8 +65,9 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
   SDL_AppResult setupRes = setupSDL(state);
   if (setupRes != SDL_APP_CONTINUE) return setupRes;
-  SDL_GPUTextureFormat scFormat = SDL_GetGPUSwapchainTextureFormat(state.gpu, state.window);
 
+  SDL_GPUTextureFormat scFormat = SDL_GetGPUSwapchainTextureFormat(state.gpu, state.window);
+  state.overlayp = new OverlayPipeline(scFormat, state.gpu, state.textEngine);
   state.sdfp = new SDFPipeline(scFormat, state.gpu);
 
   SDFObject cir1 = SDFObject::circle(Vec2 { 500.0f, 450.0f }, 38.0f);
@@ -162,6 +175,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
       .lightDist = 0.0f,
     }
   );
+  state.overlayp->render(cmdBuf, pass, swapchain, Vec2(800.0f, 600.0f));
 
   // finish render pass
 	SDL_EndGPURenderPass(pass);
@@ -179,6 +193,10 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result) {
   SDL_Log("Closing SDL3");
   state.sdfp->destroy();
   delete state.sdfp;
+  state.overlayp->destroy();
+  delete state.overlayp;
+  TTF_DestroyGPUTextEngine(state.textEngine);
+  TTF_Quit();
   SDL_ReleaseWindowFromGPUDevice(state.gpu, state.window);
   SDL_DestroyGPUDevice(state.gpu);
   SDL_DestroyWindow(state.window);

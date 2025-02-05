@@ -5,7 +5,8 @@
             "includePath": [
                 "${default}",
                 "C:/msys64/ucrt64/include",
-                "C:/Programs/SDL3/include"
+                "C:/Programs/SDL3/include",
+                "C:/Programs/SDL3_ttf/include"
             ],
             "defines": [
                 "_DEBUG",

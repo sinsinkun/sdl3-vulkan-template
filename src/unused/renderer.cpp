@@ -2,44 +2,6 @@
 
 using namespace App;
 
-// create vertex input state corresponding to RenderVertex shape
-SDL_GPUVertexInputState createVertexInputState() {
-	SDL_GPUVertexInputState state;
-
-	state.vertex_buffer_descriptions = new SDL_GPUVertexBufferDescription {
-		.slot = 0,
-		.pitch = sizeof(RenderVertex),
-		.input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
-		.instance_step_rate = 0,
-	};
-	state.num_vertex_buffers = 1;
-	
-	SDL_GPUVertexAttribute vAttr0 = {
-		.location = 0,
-		.buffer_slot = 0,
-		.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-		.offset = 0,
-	};
-	SDL_GPUVertexAttribute vAttr1 = {
-		.location = 1,
-		.buffer_slot = 0,
-		.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
-		.offset = sizeof(float) * 3,
-	};
-	SDL_GPUVertexAttribute vAttr2 = {
-		.location = 2,
-		.buffer_slot = 0,
-		.format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-		.offset = sizeof(float) * 5,
-	};
-	state.vertex_attributes = new SDL_GPUVertexAttribute[3] {
-		vAttr0, vAttr1, vAttr2
-	};
-	state.num_vertex_attributes = 3;
-
-	return state;
-}
-
 #pragma region RenderInstance
 
 RenderInstance::RenderInstance(SDL_Window *window, SDL_GPUDevice *gpu) {
