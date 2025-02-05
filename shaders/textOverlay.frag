@@ -10,6 +10,5 @@ layout(location = 0) out vec4 outColor;
 
 void main() {
   vec4 text = texture(texture0, uv);
-  if (text.a < 0.001) discard;
-  outColor = text;
+  outColor = text * color;
 }

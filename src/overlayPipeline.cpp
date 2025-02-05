@@ -9,7 +9,7 @@ OverlayPipeline::OverlayPipeline(
   ttfEngine = textEngine;
   // create shaders
   SDL_GPUShader *vertShader = App::loadShader(device, "textOverlay.vert", 0, 1, 0, 0);
-  SDL_GPUShader *fragShader = App::loadShader(device, "textOverlay.frag", 1, 1, 0, 0);
+  SDL_GPUShader *fragShader = App::loadShader(device, "textOverlay.frag", 1, 0, 0, 0);
   // create pipeline
 	pipeline = SDL_CreateGPUGraphicsPipeline(device, new SDL_GPUGraphicsPipelineCreateInfo {
 		.vertex_shader = vertShader,
@@ -57,8 +57,8 @@ OverlayPipeline::OverlayPipeline(
 	});
 
   // create font
-  font = TTF_OpenFont("assets/NotoSerifCHB.ttf", 24);
-  TTF_SetFontSDF(font, true);
+  font = TTF_OpenFont("assets/NotoSerifCHB.ttf", 48);
+  // TTF_SetFontSDF(font, true);
   TTF_SetFontWrapAlignment(font, TTF_HORIZONTAL_ALIGN_CENTER);
   ttfText = TTF_CreateText(ttfEngine, font, "Hあllo World", 0);
 
@@ -172,10 +172,11 @@ void OverlayPipeline::render(
 	std::vector<RenderVertex> vertices;
 	std::vector<Uint16> indices;
   for (TTF_GPUAtlasDrawSequence *seq = sequence; seq != NULL; seq = seq->next) {
-		addGlyphToVertices(seq, &vertices, &indices, SDL_FColor{1.0f, 1.0f, 1.0f, 1.0f});
+		addGlyphToVertices(seq, &vertices, &indices, SDL_FColor{1.0f, 0.5f, 1.0f, 1.0f});
   }
 	uploadVertices(&vertices, &indices);
 
+	// draw pipeline
   SDL_BindGPUGraphicsPipeline(pass, pipeline);
 	SDL_BindGPUVertexBuffers(pass, 0, new SDL_GPUBufferBinding {
 		.buffer = vertBuf,
