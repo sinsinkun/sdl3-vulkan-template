@@ -74,7 +74,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   StringObject str1 = StringObject(state.textEngine, state.font, "Hello World");
   StringObject str2 = StringObject(state.textEngine, state.font, "Nice to meet you");
   str2.color = RED;
-  str2.origin = Vec3{20.0f, 20.0f, 0.0f};
+  str2.origin = Vec3{20.0f, 60.0f, 0.0f};
   state.overlayp->strings.push_back(str1);
   state.overlayp->strings.push_back(str2);
 
@@ -132,13 +132,13 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   AppState& state = *static_cast<AppState*>(appstate);
 
   // calculate FPS
-  Uint64 newTime = SDL_GetTicks();
+  Uint64 newTime = SDL_GetTicksNS();
   Uint64 delta = newTime - state.lifetime;
-  state.lifetime = SDL_GetTicks();
-  if (state.timeSinceLastFps > 600) {
+  state.lifetime = SDL_GetTicksNS();
+  if (state.timeSinceLastFps > (SDL_NS_PER_SECOND / 10)) {
     state.timeSinceLastFps = 0;
-    float fps = 1001.0f;
-    if (delta != 0) fps = 1000.0f / delta;
+    float fps = 0.0f;
+    if (delta != 0) fps = SDL_NS_PER_SECOND / delta;
     // SDL_Log("FPS: %.2f", fps);
     if (state.overlayp->strings.size() > 0) {
       char str[100];
@@ -154,8 +154,8 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   obj0->updatePosition(state.mousePosScreenSpace);
   SDFObject* obj1 = &state.sdfObjects.at(1);
   obj1->updatePosition(Vec2(
-    300.0f + 100.0f * SDL_sin(0.002f * state.lifetime),
-    300.0f + 100.0f * SDL_cos(0.002f * state.lifetime)
+    300.0f + 100.0f * SDL_sin(0.001f * (state.lifetime / SDL_NS_PER_MS)),
+    300.0f + 100.0f * SDL_cos(0.001f * (state.lifetime / SDL_NS_PER_MS))
   ));
 
   // acquire command buffer
