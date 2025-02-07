@@ -21,6 +21,10 @@ namespace App {
     SDL_GPUDevice *device, const char* filename, Uint32 samplerCount,
     Uint32 uniformBufferCount, Uint32 storageBufferCount, Uint32 storageTextureCount
   );
+  void copyVertexDataIntoBuffer(
+    SDL_GPUDevice *device, SDL_GPUBuffer *vertBuf, SDL_GPUBuffer *indexBuf,
+    std::vector<RenderVertex> *verts, std::vector<Uint16> *indices
+  );
   SDL_GPUVertexInputState createVertexInputState();
   struct Vec2 {
     float x, y;

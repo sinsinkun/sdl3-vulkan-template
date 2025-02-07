@@ -34,7 +34,6 @@ namespace App {
     );
     void destroy();
   private:
-    void uploadVertices(std::vector<RenderVertex> *verts, std::vector<Uint16> *indices);
     void addGlyphToVertices(
       TTF_GPUAtlasDrawSequence *sequence, std::vector<RenderVertex> *vertices, 
       std::vector<Uint16> *indices, SDL_FColor color

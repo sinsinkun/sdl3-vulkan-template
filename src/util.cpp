@@ -117,6 +117,82 @@ SDL_GPUVertexInputState App::createVertexInputState() {
 	return state;
 }
 
+// generic handler for copying vertex data into buffers
+void App::copyVertexDataIntoBuffer(
+	SDL_GPUDevice *device, SDL_GPUBuffer *vertBuf, SDL_GPUBuffer *indexBuf,
+	std::vector<RenderVertex> *verts, std::vector<Uint16> *indices
+) {
+	Uint32 vSize = sizeof(RenderVertex) * verts->size();
+	Uint32 iSize = sizeof(Uint16) * indices->size();
+
+	// pump vertex data into transfer buffer
+	SDL_GPUTransferBuffer *vertTransferBuf = SDL_CreateGPUTransferBuffer(
+		device,
+		new SDL_GPUTransferBufferCreateInfo {
+			.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
+			.size = vSize,
+		}
+	);
+	RenderVertex* vertData = static_cast<RenderVertex*>(SDL_MapGPUTransferBuffer(device, vertTransferBuf, false));
+	for (int i=0; i < verts->size(); i++) {
+		vertData[i] = verts->at(i);
+	}
+	SDL_UnmapGPUTransferBuffer(device, vertTransferBuf);
+
+	// pump index data into transfer buffer
+	SDL_GPUTransferBuffer *idxTransferBuf = SDL_CreateGPUTransferBuffer(
+		device,
+		new SDL_GPUTransferBufferCreateInfo {
+			.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
+			.size = iSize,
+		}
+	);
+	Uint16* indexData = static_cast<Uint16*>(SDL_MapGPUTransferBuffer(device, idxTransferBuf, false));
+	for (int i=0; i < indices->size(); i++) {
+		indexData[i] = indices->at(i);
+	}
+	SDL_UnmapGPUTransferBuffer(device, idxTransferBuf);
+
+	// create cmd buffer + copy pass
+	SDL_GPUCommandBuffer *cmdBuf = SDL_AcquireGPUCommandBuffer(device);
+	SDL_GPUCopyPass *copyPass = SDL_BeginGPUCopyPass(cmdBuf);
+
+	SDL_UploadToGPUBuffer(
+		copyPass,
+		new SDL_GPUTransferBufferLocation {
+			.transfer_buffer = vertTransferBuf,
+			.offset = 0,
+		},
+		new SDL_GPUBufferRegion {
+			.buffer = vertBuf,
+			.offset = 0,
+			.size = vSize,
+		},
+		false
+	);
+
+	SDL_UploadToGPUBuffer(
+		copyPass,
+		new SDL_GPUTransferBufferLocation {
+			.transfer_buffer = idxTransferBuf,
+			.offset = 0,
+		},
+		new SDL_GPUBufferRegion {
+			.buffer = indexBuf,
+			.offset = 0,
+			.size = iSize,
+		},
+		false
+	);
+
+	// clean up passes
+	SDL_EndGPUCopyPass(copyPass);
+	SDL_SubmitGPUCommandBuffer(cmdBuf);
+	// clean up transfer buffers
+	SDL_ReleaseGPUTransferBuffer(device, vertTransferBuf);
+	SDL_ReleaseGPUTransferBuffer(device, idxTransferBuf);
+}
+
 Mat4x4::Mat4x4(
   float i0, float i1, float i2, float i3,
   float i4, float i5, float i6, float i7,

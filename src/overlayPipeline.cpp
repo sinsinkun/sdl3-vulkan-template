@@ -96,82 +96,6 @@ void OverlayPipeline::addGlyphToVertices(
 	}
 }
 
-void OverlayPipeline::uploadVertices(std::vector<RenderVertex> *verts, std::vector<Uint16> *indices) {
-	Uint32 vSize = sizeof(RenderVertex) * MAX_VERT_COUNT;
-	Uint32 iSize = sizeof(Uint16) * MAX_INDEX_COUNT;
-
-	// pump vertex data into transfer buffer
-	SDL_GPUTransferBuffer *vertTransferBuf = SDL_CreateGPUTransferBuffer(
-		device,
-		new SDL_GPUTransferBufferCreateInfo {
-			.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-			.size = vSize,
-		}
-	);
-	RenderVertex* vertData = static_cast<RenderVertex*>(SDL_MapGPUTransferBuffer(
-		device, vertTransferBuf, false
-	));
-	for (int i=0; i < verts->size(); i++) {
-		vertData[i] = verts->at(i);
-	}
-	SDL_UnmapGPUTransferBuffer(device, vertTransferBuf);
-
-	// pump index data into transfer buffer
-	SDL_GPUTransferBuffer *idxTransferBuf = SDL_CreateGPUTransferBuffer(
-		device,
-		new SDL_GPUTransferBufferCreateInfo {
-			.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-			.size = iSize,
-		}
-	);
-	Uint16* indexData = static_cast<Uint16*>(SDL_MapGPUTransferBuffer(
-		device, idxTransferBuf, false
-	));
-	for (int i=0; i < indices->size(); i++) {
-		indexData[i] = indices->at(i);
-	}
-	SDL_UnmapGPUTransferBuffer(device, idxTransferBuf);
-
-	// create cmd buffer + copy pass
-	SDL_GPUCommandBuffer *cmdBuf = SDL_AcquireGPUCommandBuffer(device);
-	SDL_GPUCopyPass *copyPass = SDL_BeginGPUCopyPass(cmdBuf);
-
-	SDL_UploadToGPUBuffer(
-		copyPass,
-		new SDL_GPUTransferBufferLocation {
-			.transfer_buffer = vertTransferBuf,
-			.offset = 0,
-		},
-		new SDL_GPUBufferRegion {
-			.buffer = vertBuf,
-			.offset = 0,
-			.size = vSize,
-		},
-		false
-	);
-
-	SDL_UploadToGPUBuffer(
-		copyPass,
-		new SDL_GPUTransferBufferLocation {
-			.transfer_buffer = idxTransferBuf,
-			.offset = 0,
-		},
-		new SDL_GPUBufferRegion {
-			.buffer = indexBuf,
-			.offset = 0,
-			.size = iSize,
-		},
-		false
-	);
-
-	// clean up passes
-	SDL_EndGPUCopyPass(copyPass);
-	SDL_SubmitGPUCommandBuffer(cmdBuf);
-	// clean up transfer buffers
-	SDL_ReleaseGPUTransferBuffer(device, vertTransferBuf);
-	SDL_ReleaseGPUTransferBuffer(device, idxTransferBuf);
-}
-
 void OverlayPipeline::render(
   SDL_GPUCommandBuffer *cmdBuf, SDL_GPURenderPass *pass,
   SDL_GPUTexture* target, Vec2 screenSize
@@ -183,10 +107,14 @@ void OverlayPipeline::render(
   for (TTF_GPUAtlasDrawSequence *seq = sequence; seq != NULL; seq = seq->next) {
 		addGlyphToVertices(seq, &vertices, &indices, SDL_FColor{1.0f, 0.5f, 1.0f, 1.0f});
   }
-	uploadVertices(&vertices, &indices);
+	copyVertexDataIntoBuffer(device, vertBuf, indexBuf, &vertices, &indices);
 
 	// draw pipeline
   SDL_BindGPUGraphicsPipeline(pass, pipeline);
+	SDL_BindGPUFragmentSamplers(pass, 0, new SDL_GPUTextureSamplerBinding {
+    .texture = sequence->atlas_texture,
+    .sampler = sampler
+  }, 1);
 	SDL_BindGPUVertexBuffers(pass, 0, new SDL_GPUBufferBinding {
 		.buffer = vertBuf,
 		.offset = 0,
@@ -196,17 +124,9 @@ void OverlayPipeline::render(
 		.offset = 0,
 	}, SDL_GPU_INDEXELEMENTSIZE_16BIT);
 	SDL_PushGPUVertexUniformData(cmdBuf, 0, &screenSize, sizeof(Vec2));
-  SDL_BindGPUFragmentSamplers(pass, 0, new SDL_GPUTextureSamplerBinding {
-    .texture = sequence->atlas_texture,
-    .sampler = sampler
-  }, 1);
 	int index_offset = 0, vertex_offset = 0;
 	// dynamically offset buffers for each glyph
 	for (TTF_GPUAtlasDrawSequence *seq = sequence; seq != NULL; seq = seq->next) {
-		SDL_BindGPUFragmentSamplers(pass, 0, new SDL_GPUTextureSamplerBinding {
-			.texture = seq->atlas_texture,
-			.sampler = sampler
-		}, 1);
 		SDL_DrawGPUIndexedPrimitives(pass, seq->num_indices, 1, index_offset, vertex_offset, 0);
 		index_offset += seq->num_indices;
 		vertex_offset += seq->num_vertices;
