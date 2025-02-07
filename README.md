@@ -27,6 +27,9 @@ Compiled using g++ from the default msys2 location:
 SDL3 is assumed to be manually installed at C:/Programs/SDL3
 (msys2 SDL3 package can't be linked statically)
 
+SDL3_ttf is assumed to be manually installed at C:/Programs/SDL3_ttf
+(SDL3_ttf is not available on msys2)
+
 SDL3 installation instructions from source:
 (prerequisite: CMake)
 
@@ -37,6 +40,8 @@ SDL3 installation instructions from source:
 5. `cmake .. -G "MinGW Makefiles" -DCMAKE_INSTALL_PREFIX=C:\Programs\SDL3`
 6. `cmake --build . --config Release`
 7. `cmake --install .`
+
+Repeat the above for SDL3_ttf
 
 ## Build
 .vscode is setup to run debug mode in VSCode (F5).
