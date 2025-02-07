@@ -2,9 +2,24 @@
 
 using namespace App;
 
-OverlayPipeline::OverlayPipeline(
-  SDL_GPUTextureFormat targetFormat, SDL_GPUDevice *gpu, TTF_TextEngine *textEngine
-) {
+StringObject::StringObject(TTF_TextEngine *textEngine, TTF_Font *font, std::string text) {
+	this->text = text;
+	this->ttfText = TTF_CreateText(textEngine, font, text.c_str(), text.length());
+}
+
+void StringObject::updateText(std::string text) {
+	bool success = TTF_SetTextString(ttfText, text.c_str(), text.length());
+	if (!success) {
+		SDL_Log("Failed to set text string: %s", SDL_GetError());
+		return;
+	}
+	success = TTF_UpdateText(ttfText);
+	if (!success) {
+		SDL_Log("Failed to update text string: %s", SDL_GetError());
+	}
+}
+
+OverlayPipeline::OverlayPipeline(SDL_GPUTextureFormat targetFormat, SDL_GPUDevice *gpu) {
   device = gpu;
   // create shaders
   SDL_GPUShader *vertShader = App::loadShader(device, "textOverlay.vert", 0, 1, 0, 0);
@@ -55,38 +70,23 @@ OverlayPipeline::OverlayPipeline(
 		.size = sizeof(Uint16) * MAX_INDEX_COUNT
 	});
 
-  // create font
-  font = TTF_OpenFont("assets/NotoSerifCHB.ttf", 48);
-	ttfText = TTF_CreateText(textEngine, font, "", 0);
-
   // release shaders
 	SDL_ReleaseGPUShader(device, vertShader);
   SDL_ReleaseGPUShader(device, fragShader);
 }
 
-void OverlayPipeline::updateText(std::string text) {
-	bool success = TTF_SetTextString(ttfText, text.c_str(), text.length());
-	if (!success) {
-		SDL_Log("Failed to set text string: %s", SDL_GetError());
-		return;
-	}
-	success = TTF_UpdateText(ttfText);
-	if (!success) {
-		SDL_Log("Failed to update text string: %s", SDL_GetError());
-	}
-}
-
-void OverlayPipeline::addGlyphToVertices(
+void addGlyphToVertices(
 	TTF_GPUAtlasDrawSequence *sequence,
 	std::vector<RenderVertex> *vertices,
 	std::vector<Uint16> *indices,
-	SDL_FColor color
+	SDL_FColor color,
+	Vec3 origin
 ) {
   for (int i=0; i < sequence->num_vertices; i++) {
 		RenderVertex vert;
 		const SDL_FPoint pos = sequence->xy[i];
 		const SDL_FPoint uv = sequence->uv[i];
-		vert.x = pos.x; vert.y = pos.y;
+		vert.x = origin.x + pos.x; vert.y = origin.y + pos.y; vert.z = origin.z;
 		vert.u = uv.x; vert.v = uv.y;
 		vert.r = color.r; vert.g = color.g; vert.b = color.b; vert.a = color.a;
 		vertices->push_back(vert);
@@ -98,21 +98,28 @@ void OverlayPipeline::addGlyphToVertices(
 
 void OverlayPipeline::render(
   SDL_GPUCommandBuffer *cmdBuf, SDL_GPURenderPass *pass,
-  SDL_GPUTexture* target, Vec2 screenSize
+  SDL_GPUTexture* target, Vec2 targetSize
 ) {
-  // move through sequence of glyphs
-  TTF_GPUAtlasDrawSequence *sequence = TTF_GetGPUTextDrawData(ttfText);
+	if (strings.empty()) { return; }
 	std::vector<RenderVertex> vertices;
 	std::vector<Uint16> indices;
-  for (TTF_GPUAtlasDrawSequence *seq = sequence; seq != NULL; seq = seq->next) {
-		addGlyphToVertices(seq, &vertices, &indices, SDL_FColor{1.0f, 0.5f, 1.0f, 1.0f});
-  }
+	// process each StringObject individually
+	for (int i=0; i<strings.size(); i++) {
+		// TTF_SetTextString(strings[i].ttfText, strings[i].text.c_str(), strings[i].text.length());
+		// TTF_UpdateText(strings[i].ttfText);
+		// move through sequence of glyphs
+		strings[i].sequence = TTF_GetGPUTextDrawData(strings[i].ttfText);
+		for (TTF_GPUAtlasDrawSequence *seq = strings[i].sequence; seq != NULL; seq = seq->next) {
+			addGlyphToVertices(seq, &vertices, &indices, strings[i].color, strings[i].origin);
+		}
+	}
+	if (vertices.size() < 1) { return; }
 	copyVertexDataIntoBuffer(device, vertBuf, indexBuf, &vertices, &indices);
 
 	// draw pipeline
   SDL_BindGPUGraphicsPipeline(pass, pipeline);
 	SDL_BindGPUFragmentSamplers(pass, 0, new SDL_GPUTextureSamplerBinding {
-    .texture = sequence->atlas_texture,
+    .texture = strings[0].sequence->atlas_texture,
     .sampler = sampler
   }, 1);
 	SDL_BindGPUVertexBuffers(pass, 0, new SDL_GPUBufferBinding {
@@ -123,18 +130,20 @@ void OverlayPipeline::render(
 		.buffer = indexBuf,
 		.offset = 0,
 	}, SDL_GPU_INDEXELEMENTSIZE_16BIT);
-	SDL_PushGPUVertexUniformData(cmdBuf, 0, &screenSize, sizeof(Vec2));
+	SDL_PushGPUVertexUniformData(cmdBuf, 0, &targetSize, sizeof(Vec2));
 	int index_offset = 0, vertex_offset = 0;
 	// dynamically offset buffers for each glyph
-	for (TTF_GPUAtlasDrawSequence *seq = sequence; seq != NULL; seq = seq->next) {
-		SDL_DrawGPUIndexedPrimitives(pass, seq->num_indices, 1, index_offset, vertex_offset, 0);
-		index_offset += seq->num_indices;
-		vertex_offset += seq->num_vertices;
+	for (int i=0; i<strings.size(); i++) {
+		for (TTF_GPUAtlasDrawSequence *seq = strings[i].sequence; seq != NULL; seq = seq->next) {
+			SDL_DrawGPUIndexedPrimitives(pass, seq->num_indices, 1, index_offset, vertex_offset, 0);
+			index_offset += seq->num_indices;
+			vertex_offset += seq->num_vertices;
+		}
 	}
 }
 
 void OverlayPipeline::destroy() {
-  TTF_CloseFont(font);
+	strings.clear();
   SDL_ReleaseGPUBuffer(device, vertBuf);
   SDL_ReleaseGPUBuffer(device, indexBuf);
   SDL_ReleaseGPUSampler(device, sampler);

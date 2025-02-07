@@ -65,11 +65,18 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
   SDL_AppResult setupRes = setupSDL(state);
   if (setupRes != SDL_APP_CONTINUE) return setupRes;
+  state.font = TTF_OpenFont("assets/NotoSerifCHB.ttf", 48);
 
   SDL_GPUTextureFormat scFormat = SDL_GetGPUSwapchainTextureFormat(state.gpu, state.window);
-  state.overlayp = new OverlayPipeline(scFormat, state.gpu, state.textEngine);
-  state.overlayp->updateText("FPS: 0.00");
+  state.overlayp = new OverlayPipeline(scFormat, state.gpu);
   state.sdfp = new SDFPipeline(scFormat, state.gpu);
+
+  StringObject str1 = StringObject(state.textEngine, state.font, "Hello World");
+  StringObject str2 = StringObject(state.textEngine, state.font, "Nice to meet you");
+  str2.color = SDL_FColor{1.0f, 0.0f, 0.0f, 1.0f};
+  str2.origin = Vec3{0.0f, -50.0f, 0.0f};
+  state.overlayp->strings.push_back(str1);
+  state.overlayp->strings.push_back(str2);
 
   SDFObject cir1 = SDFObject::circle(Vec2 { 500.0f, 450.0f }, 38.0f);
   cir1.withColor(SDL_FColor {1.0f, 0.0f, 0.0f, 1.0f});
@@ -166,7 +173,6 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
   // update render objects in sync with render
   state.sdfp->refreshObjects(state.sdfObjects);
-  state.overlayp->updateText("Lifetime: " + std::to_string(state.lifetime/1000));
   // start render pipelines
   state.sdfp->render(
     cmdBuf, pass, swapchain,
@@ -200,6 +206,7 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result) {
   delete state.sdfp;
   state.overlayp->destroy();
   delete state.overlayp;
+  TTF_CloseFont(state.font);
   TTF_DestroyGPUTextEngine(state.textEngine);
   TTF_Quit();
   SDL_ReleaseWindowFromGPUDevice(state.gpu, state.window);

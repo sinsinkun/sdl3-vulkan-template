@@ -8,14 +8,21 @@
 
 // generic render pipeline
 namespace App {
+  class StringObject {
+  public:
+    StringObject(TTF_TextEngine *textEngine, TTF_Font* font, std::string text);
+    std::string text;
+    TTF_Text *ttfText = NULL;
+    TTF_GPUAtlasDrawSequence *sequence = NULL;
+    SDL_FColor color { 1.0f, 1.0f, 1.0f, 1.0f };
+    Vec3 origin {0.0f, 0.0f, 0.0f };
+    void updateText(std::string text);
+  };
   class OverlayPipeline {
   public:
     static const int MAX_VERT_COUNT = 2000;
     static const int MAX_INDEX_COUNT = 4000;
-    OverlayPipeline(
-      SDL_GPUTextureFormat targetFormat, SDL_GPUDevice *gpu,
-      TTF_TextEngine* textEngine
-    );
+    OverlayPipeline(SDL_GPUTextureFormat targetFormat, SDL_GPUDevice *gpu);
     SDL_GPUDevice *device = NULL;
     SDL_GPUGraphicsPipeline *pipeline = NULL;
     SDL_GPUSampler *sampler = NULL;
@@ -24,19 +31,11 @@ namespace App {
     SDL_GPUBuffer *indexBuf = NULL;
     int vertCount = 0;
     int indexCount = 0;
-    // font resources
-    TTF_Font *font = NULL;
-    TTF_Text *ttfText = NULL;
-    void updateText(std::string text);
+    std::vector<StringObject> strings;
     void render(
       SDL_GPUCommandBuffer *cmdBuf, SDL_GPURenderPass *pass,
       SDL_GPUTexture* target, Vec2 screenSize
     );
     void destroy();
-  private:
-    void addGlyphToVertices(
-      TTF_GPUAtlasDrawSequence *sequence, std::vector<RenderVertex> *vertices, 
-      std::vector<Uint16> *indices, SDL_FColor color
-    );
   };
 }
