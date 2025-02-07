@@ -28,10 +28,11 @@ namespace App {
   );
   SDL_GPUVertexInputState createVertexInputState();
   // color
+  SDL_FColor rgba(Uint8 r, Uint8 g, Uint8 b, Uint8 a);
   SDL_FColor rgb(Uint8 r, Uint8 g, Uint8 b);
-  SDL_FColor rgb(Uint8 r, Uint8 g, Uint8 b, Uint8 a);
+  SDL_FColor hsva(float h, float s, float v, float a);
   SDL_FColor hsv(float h, float s, float v);
-  SDL_FColor hsv(float h, float s, float v, float a);
+  SDL_FColor modAlpha(SDL_FColor in, float a);
   static SDL_FColor TRANSPARENT{0.0f, 0.0f, 0.0f, 0.0f};
   static SDL_FColor BLACK{0.0f, 0.0f, 0.0f, 1.0f};
   static SDL_FColor WHITE{1.0f, 1.0f, 1.0f, 1.0f};

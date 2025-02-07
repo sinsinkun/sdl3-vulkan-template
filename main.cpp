@@ -83,7 +83,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   SDFObject cir2 = SDFObject::circle(Vec2 { 300.0f, 200.0f }, 50.0f);
   cir2.withColor(PURPLE);
   SDFObject rect1 = SDFObject::rect(Vec2 { 400.0f, 200.0f }, Vec2 { 50.0f, 60.0f });
-  rect1.withColor(GREEN);
+  rect1.withColor(modAlpha(GREEN, 0.8f));
   rect1.withRoundCorner(10.0f);
   SDFObject tri1 = SDFObject::triangle(Vec2 { 100.0f, 400.0f}, Vec2 { 220.0f, 330.0f }, Vec2 { 180.0f, 500.0f });
   tri1.withRoundCorner(5.0f);

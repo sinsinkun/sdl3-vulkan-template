@@ -2,6 +2,8 @@
 
 using namespace App;
 
+#pragma region Pipeline helpers
+
 // utility function from https://github.com/TheSpydog/SDL_gpu_examples/blob/main/Examples/Common.c
 SDL_GPUShader* App::loadShader(
   SDL_GPUDevice *device,
@@ -193,15 +195,19 @@ void App::copyVertexDataIntoBuffer(
 	SDL_ReleaseGPUTransferBuffer(device, idxTransferBuf);
 }
 
-SDL_FColor App::rgb(Uint8 r, Uint8 g, Uint8 b, Uint8 a) {
+#pragma endregion Pipeline helpers
+
+#pragma region Color utils
+
+SDL_FColor App::rgba(Uint8 r, Uint8 g, Uint8 b, Uint8 a) {
 	return SDL_FColor{ r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f };
 }
 
 SDL_FColor App::rgb(Uint8 r, Uint8 g, Uint8 b) {
-	return rgb(r, g, b, 255);
+	return rgba(r, g, b, 255);
 }
 
-SDL_FColor App::hsv(float h, float s, float v, float a) {
+SDL_FColor App::hsva(float h, float s, float v, float a) {
 	float i = SDL_floorf(h * 6.0);
 	float f = h * 6.0 - i;
 	float p = v * (1.0 - s);
@@ -230,8 +236,16 @@ SDL_FColor App::hsv(float h, float s, float v, float a) {
 }
 
 SDL_FColor App::hsv(float h, float s, float v) {
-	return hsv(h, s, v, 1.0f);
+	return hsva(h, s, v, 1.0f);
 }
+
+SDL_FColor App::modAlpha(SDL_FColor clr, float a) {
+	return SDL_FColor{ clr.r, clr.g, clr.b, a };
+}
+
+#pragma endregion Color utils
+
+#pragma region Linear algebra
 
 Mat4x4::Mat4x4(
   float i0, float i1, float i2, float i3,
@@ -291,3 +305,5 @@ Mat4x4 App::scaleMat4(float x, float y, float z) {
     0.0f, 0.0f, 0.0f, 1.0f
   };
 }
+
+#pragma endregion Linear algebra
