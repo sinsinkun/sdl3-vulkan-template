@@ -6,7 +6,6 @@ OverlayPipeline::OverlayPipeline(
   SDL_GPUTextureFormat targetFormat, SDL_GPUDevice *gpu, TTF_TextEngine *textEngine
 ) {
   device = gpu;
-  ttfEngine = textEngine;
   // create shaders
   SDL_GPUShader *vertShader = App::loadShader(device, "textOverlay.vert", 0, 1, 0, 0);
   SDL_GPUShader *fragShader = App::loadShader(device, "textOverlay.frag", 1, 0, 0, 0);
@@ -58,13 +57,23 @@ OverlayPipeline::OverlayPipeline(
 
   // create font
   font = TTF_OpenFont("assets/NotoSerifCHB.ttf", 48);
-  // TTF_SetFontSDF(font, true);
-  TTF_SetFontWrapAlignment(font, TTF_HORIZONTAL_ALIGN_CENTER);
-  ttfText = TTF_CreateText(ttfEngine, font, "Hあllo World", 0);
+	ttfText = TTF_CreateText(textEngine, font, "", 0);
 
   // release shaders
 	SDL_ReleaseGPUShader(device, vertShader);
   SDL_ReleaseGPUShader(device, fragShader);
+}
+
+void OverlayPipeline::updateText(std::string text) {
+	bool success = TTF_SetTextString(ttfText, text.c_str(), text.length());
+	if (!success) {
+		SDL_Log("Failed to set text string: %s", SDL_GetError());
+		return;
+	}
+	success = TTF_UpdateText(ttfText);
+	if (!success) {
+		SDL_Log("Failed to update text string: %s", SDL_GetError());
+	}
 }
 
 void OverlayPipeline::addGlyphToVertices(

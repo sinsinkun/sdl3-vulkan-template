@@ -68,6 +68,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
   SDL_GPUTextureFormat scFormat = SDL_GetGPUSwapchainTextureFormat(state.gpu, state.window);
   state.overlayp = new OverlayPipeline(scFormat, state.gpu, state.textEngine);
+  state.overlayp->updateText("FPS: 0.00");
   state.sdfp = new SDFPipeline(scFormat, state.gpu);
 
   SDFObject cir1 = SDFObject::circle(Vec2 { 500.0f, 450.0f }, 38.0f);
@@ -165,6 +166,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
   // update render objects in sync with render
   state.sdfp->refreshObjects(state.sdfObjects);
+  state.overlayp->updateText("Lifetime: " + std::to_string(state.lifetime/1000));
   // start render pipelines
   state.sdfp->render(
     cmdBuf, pass, swapchain,
@@ -175,7 +177,10 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
       .lightDist = 0.0f,
     }
   );
-  state.overlayp->render(cmdBuf, pass, swapchain, Vec2(800.0f, 600.0f));
+  int wx, wy;
+  SDL_GetWindowSize(state.window, &wx, &wy);
+  state.winSize = Vec2 { (float)wx, (float)wy };
+  state.overlayp->render(cmdBuf, pass, swapchain, state.winSize);
 
   // finish render pass
 	SDL_EndGPURenderPass(pass);

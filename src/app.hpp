@@ -15,6 +15,7 @@ namespace App {
     TTF_TextEngine *textEngine = NULL;
     OverlayPipeline *overlayp = NULL;
     Vec2 mousePosScreenSpace = Vec2(0.0f);
+    Vec2 winSize = Vec2(0.0f);
     // SDF render
     std::vector<SDFObject> sdfObjects;
     SDFPipeline *sdfp = NULL;
