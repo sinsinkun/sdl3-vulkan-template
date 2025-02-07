@@ -4,6 +4,7 @@
 #include <SDL3/SDL.h>
 
 namespace App {
+  // GPU helpers
   enum GPUPrimitiveType { Point, Line, Triangle };
   struct RenderVertex {
     float x, y, z;
@@ -26,6 +27,23 @@ namespace App {
     std::vector<RenderVertex> *verts, std::vector<Uint16> *indices
   );
   SDL_GPUVertexInputState createVertexInputState();
+  // color
+  SDL_FColor rgb(Uint8 r, Uint8 g, Uint8 b);
+  SDL_FColor rgb(Uint8 r, Uint8 g, Uint8 b, Uint8 a);
+  SDL_FColor hsv(float h, float s, float v);
+  SDL_FColor hsv(float h, float s, float v, float a);
+  static SDL_FColor TRANSPARENT{0.0f, 0.0f, 0.0f, 0.0f};
+  static SDL_FColor BLACK{0.0f, 0.0f, 0.0f, 1.0f};
+  static SDL_FColor WHITE{1.0f, 1.0f, 1.0f, 1.0f};
+  static SDL_FColor RED{1.0f, 0.0f, 0.0f, 1.0f};
+  static SDL_FColor GREEN{0.0f, 1.0f, 0.0f, 1.0f};
+  static SDL_FColor BLUE{0.0f, 0.0f, 1.0f, 1.0f};
+  static SDL_FColor YELLOW{1.0f, 1.0f, 0.0f, 1.0f};
+  static SDL_FColor CYAN{0.0f, 1.0f, 1.0f, 1.0f};
+  static SDL_FColor MAGENTA{1.0f, 0.0f, 1.0f, 1.0f};
+  static SDL_FColor ORANGE{1.0f, 0.5f, 0.0f, 1.0f};
+  static SDL_FColor PURPLE{0.5f, 0.0f, 1.0f, 1.0f};
+  // math
   struct Vec2 {
     float x, y;
     Vec2(float a) { x = a; y = a; }

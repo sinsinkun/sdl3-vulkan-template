@@ -65,7 +65,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
   SDL_AppResult setupRes = setupSDL(state);
   if (setupRes != SDL_APP_CONTINUE) return setupRes;
-  state.font = TTF_OpenFont("assets/Helvetica.ttf", 64);
+  state.font = TTF_OpenFont("assets/Helvetica.ttf", 48);
 
   SDL_GPUTextureFormat scFormat = SDL_GetGPUSwapchainTextureFormat(state.gpu, state.window);
   state.overlayp = new OverlayPipeline(scFormat, state.gpu);
@@ -73,17 +73,17 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
   StringObject str1 = StringObject(state.textEngine, state.font, "Hello World");
   StringObject str2 = StringObject(state.textEngine, state.font, "Nice to meet you");
-  str2.color = SDL_FColor{1.0f, 0.0f, 0.0f, 1.0f};
+  str2.color = RED;
   str2.origin = Vec3{20.0f, 20.0f, 0.0f};
   state.overlayp->strings.push_back(str1);
   state.overlayp->strings.push_back(str2);
 
   SDFObject cir1 = SDFObject::circle(Vec2 { 500.0f, 450.0f }, 38.0f);
-  cir1.withColor(SDL_FColor {1.0f, 0.0f, 0.0f, 1.0f});
+  cir1.withColor(RED);
   SDFObject cir2 = SDFObject::circle(Vec2 { 300.0f, 200.0f }, 50.0f);
-  cir2.withColor(SDL_FColor {0.0f, 0.5f, 0.5f, 1.0f});
+  cir2.withColor(PURPLE);
   SDFObject rect1 = SDFObject::rect(Vec2 { 400.0f, 200.0f }, Vec2 { 50.0f, 60.0f });
-  rect1.withColor(SDL_FColor {0.0f, 1.0f, 0.0f, 0.8f});
+  rect1.withColor(GREEN);
   rect1.withRoundCorner(10.0f);
   SDFObject tri1 = SDFObject::triangle(Vec2 { 100.0f, 400.0f}, Vec2 { 220.0f, 330.0f }, Vec2 { 180.0f, 500.0f });
   tri1.withRoundCorner(5.0f);
@@ -135,11 +135,16 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   Uint64 newTime = SDL_GetTicks();
   Uint64 delta = newTime - state.lifetime;
   state.lifetime = SDL_GetTicks();
-  if (state.printFps && state.timeSinceLastFps > 600) {
+  if (state.timeSinceLastFps > 600) {
     state.timeSinceLastFps = 0;
     float fps = 1001.0f;
     if (delta != 0) fps = 1000.0f / delta;
-    SDL_Log("FPS: %.2f", fps);
+    // SDL_Log("FPS: %.2f", fps);
+    if (state.overlayp->strings.size() > 0) {
+      char str[100];
+      SDL_snprintf(str, sizeof(str), "FPS: %.2f", fps);
+      state.overlayp->strings[0].updateText(str);
+    }
   } else {
     state.timeSinceLastFps += delta;
   }

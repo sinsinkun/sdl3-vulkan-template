@@ -193,6 +193,46 @@ void App::copyVertexDataIntoBuffer(
 	SDL_ReleaseGPUTransferBuffer(device, idxTransferBuf);
 }
 
+SDL_FColor App::rgb(Uint8 r, Uint8 g, Uint8 b, Uint8 a) {
+	return SDL_FColor{ r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f };
+}
+
+SDL_FColor App::rgb(Uint8 r, Uint8 g, Uint8 b) {
+	return rgb(r, g, b, 255);
+}
+
+SDL_FColor App::hsv(float h, float s, float v, float a) {
+	float i = SDL_floorf(h * 6.0);
+	float f = h * 6.0 - i;
+	float p = v * (1.0 - s);
+	float q = v * (1.0 - f * s);
+	float t = v * (1.0 - (1.0 - f) * s);
+
+	float fmod = SDL_fmodf(i, 6.0f);
+
+	switch ((int)i % 6) {
+		case 0:
+			return SDL_FColor{v, t, p, a};
+		case 1:
+			return SDL_FColor{q, v, p, a};
+		case 2:
+			return SDL_FColor{p, v, t, a};
+		case 3:
+			return SDL_FColor{p, q, v, a};
+		case 4:
+			return SDL_FColor{t, p, v, a};
+		case 5:
+			return SDL_FColor{v, p, q, a};
+		case 6:
+			return SDL_FColor{v, p, q, a};
+	}
+	return WHITE;
+}
+
+SDL_FColor App::hsv(float h, float s, float v) {
+	return hsv(h, s, v, 1.0f);
+}
+
 Mat4x4::Mat4x4(
   float i0, float i1, float i2, float i3,
   float i4, float i5, float i6, float i7,

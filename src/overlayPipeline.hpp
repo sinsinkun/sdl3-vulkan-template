@@ -14,7 +14,7 @@ namespace App {
     std::string text;
     TTF_Text *ttfText = NULL;
     TTF_GPUAtlasDrawSequence *sequence = NULL;
-    SDL_FColor color { 1.0f, 1.0f, 1.0f, 1.0f };
+    SDL_FColor color = WHITE;
     Vec3 origin {0.0f, 0.0f, 0.0f };
     void updateText(std::string text);
   };

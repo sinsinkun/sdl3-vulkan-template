@@ -15,7 +15,7 @@ namespace App {
     float rotation = 0.0f;
     float thickness = 0.0f;
     float padding = 0.0f; // 3rd quad
-    SDL_FColor color = SDL_FColor{1.0f, 1.0f, 1.0f, 1.0f}; // 4th quad
+    SDL_FColor color = WHITE; // 4th quad
   };
   enum SDFObjectType {
     SDF_None, SDF_Circle, SDF_Line, SDF_Triangle, SDF_Rect, SDF_RectA
@@ -43,7 +43,7 @@ namespace App {
     float thickness = 0.0f;
     Vec2 v2 = Vec2(0.0f);
     Vec2 v3 = Vec2(0.0f);
-    SDL_FColor color = SDL_FColor{1.0f, 1.0f, 1.0f, 1.0f};
+    SDL_FColor color = WHITE;
   };
   struct SDFSysData {
     Vec2 screenSize;
