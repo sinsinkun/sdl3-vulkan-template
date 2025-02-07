@@ -143,6 +143,9 @@ void OverlayPipeline::render(
 }
 
 void OverlayPipeline::destroy() {
+	for (int i=0; i<strings.size(); i++) {
+		TTF_DestroyText(strings[i].ttfText);
+	}
 	strings.clear();
   SDL_ReleaseGPUBuffer(device, vertBuf);
   SDL_ReleaseGPUBuffer(device, indexBuf);
