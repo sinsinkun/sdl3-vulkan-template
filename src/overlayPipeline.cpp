@@ -86,7 +86,7 @@ void addGlyphToVertices(
 		RenderVertex vert;
 		const SDL_FPoint pos = sequence->xy[i];
 		const SDL_FPoint uv = sequence->uv[i];
-		vert.x = origin.x + pos.x; vert.y = origin.y + pos.y; vert.z = origin.z;
+		vert.x = origin.x + pos.x; vert.y = pos.y - origin.y; vert.z = origin.z;
 		vert.u = uv.x; vert.v = uv.y;
 		vert.r = color.r; vert.g = color.g; vert.b = color.b; vert.a = color.a;
 		vertices->push_back(vert);
@@ -105,8 +105,6 @@ void OverlayPipeline::render(
 	std::vector<Uint16> indices;
 	// process each StringObject individually
 	for (int i=0; i<strings.size(); i++) {
-		// TTF_SetTextString(strings[i].ttfText, strings[i].text.c_str(), strings[i].text.length());
-		// TTF_UpdateText(strings[i].ttfText);
 		// move through sequence of glyphs
 		strings[i].sequence = TTF_GetGPUTextDrawData(strings[i].ttfText);
 		for (TTF_GPUAtlasDrawSequence *seq = strings[i].sequence; seq != NULL; seq = seq->next) {

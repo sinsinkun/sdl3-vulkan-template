@@ -65,7 +65,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
   SDL_AppResult setupRes = setupSDL(state);
   if (setupRes != SDL_APP_CONTINUE) return setupRes;
-  state.font = TTF_OpenFont("assets/NotoSerifCHB.ttf", 48);
+  state.font = TTF_OpenFont("assets/Helvetica.ttf", 64);
 
   SDL_GPUTextureFormat scFormat = SDL_GetGPUSwapchainTextureFormat(state.gpu, state.window);
   state.overlayp = new OverlayPipeline(scFormat, state.gpu);
@@ -74,7 +74,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   StringObject str1 = StringObject(state.textEngine, state.font, "Hello World");
   StringObject str2 = StringObject(state.textEngine, state.font, "Nice to meet you");
   str2.color = SDL_FColor{1.0f, 0.0f, 0.0f, 1.0f};
-  str2.origin = Vec3{0.0f, -50.0f, 0.0f};
+  str2.origin = Vec3{20.0f, 20.0f, 0.0f};
   state.overlayp->strings.push_back(str1);
   state.overlayp->strings.push_back(str2);
 
