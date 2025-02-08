@@ -18,11 +18,11 @@ namespace App {
     Vec3 origin {0.0f, 0.0f, 0.0f };
     void updateText(std::string text);
   };
-  class OverlayPipeline {
+  class TextPipeline {
   public:
     static const int MAX_VERT_COUNT = 2000;
     static const int MAX_INDEX_COUNT = 4000;
-    OverlayPipeline(SDL_GPUTextureFormat targetFormat, SDL_GPUDevice *gpu);
+    TextPipeline(SDL_GPUTextureFormat targetFormat, SDL_GPUDevice *gpu);
     SDL_GPUDevice *device = NULL;
     SDL_GPUGraphicsPipeline *pipeline = NULL;
     SDL_GPUSampler *sampler = NULL;
@@ -34,7 +34,7 @@ namespace App {
     std::vector<StringObject> strings;
     void render(
       SDL_GPUCommandBuffer *cmdBuf, SDL_GPURenderPass *pass,
-      SDL_GPUTexture* target, Vec2 screenSize
+      SDL_GPUTexture* target, Vec2 targetSize
     );
     void destroy();
   };

@@ -65,16 +65,16 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
   SDL_AppResult setupRes = setupSDL(state);
   if (setupRes != SDL_APP_CONTINUE) return setupRes;
-  state.font = TTF_OpenFont("assets/Helvetica.ttf", 48);
+  state.font = TTF_OpenFont("assets/Helvetica.ttf", 24);
 
   SDL_GPUTextureFormat scFormat = SDL_GetGPUSwapchainTextureFormat(state.gpu, state.window);
-  state.overlayp = new OverlayPipeline(scFormat, state.gpu);
+  state.overlayp = new TextPipeline(scFormat, state.gpu);
   state.sdfp = new SDFPipeline(scFormat, state.gpu);
 
   StringObject str1 = StringObject(state.textEngine, state.font, "Hello World");
   StringObject str2 = StringObject(state.textEngine, state.font, "Nice to meet you");
-  str2.color = RED;
-  str2.origin = Vec3{20.0f, 60.0f, 0.0f};
+  str2.color = ORANGE;
+  str2.origin = Vec3{620.0f, 576.0f, 0.0f};
   state.overlayp->strings.push_back(str1);
   state.overlayp->strings.push_back(str2);
 
@@ -134,7 +134,8 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   // calculate FPS
   Uint64 newTime = SDL_GetTicksNS();
   Uint64 delta = newTime - state.lifetime;
-  state.lifetime = SDL_GetTicksNS();
+  if (delta < 100001) return SDL_APP_CONTINUE;
+  state.lifetime = newTime;
   if (state.timeSinceLastFps > (SDL_NS_PER_SECOND / 10)) {
     state.timeSinceLastFps = 0;
     float fps = 0.0f;

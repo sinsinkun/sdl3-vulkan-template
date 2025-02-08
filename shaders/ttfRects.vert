@@ -14,7 +14,9 @@ layout(location = 1) out vec3 outNormal;
 layout(location = 2) out vec4 outColor;
 
 void main() {
-  vec4 outPos = vec4(inPos.xy / screenSize, inPos.z, 1.0);
+  vec4 outPos = vec4(inPos.xy / (0.5 * screenSize), inPos.z, 1.0);
+  outPos.x = outPos.x - 1.0;
+  outPos.y = outPos.y + 1.0;
   outUv = inUv;
   outNormal = inNormal;
   outColor = inColor;

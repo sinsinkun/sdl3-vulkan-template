@@ -6,7 +6,7 @@
 
 #include "util.hpp"
 #include "sdfPipeline.hpp"
-#include "overlayPipeline.hpp"
+#include "textPipeline.hpp"
 
 namespace App {
   struct AppState {
@@ -14,7 +14,7 @@ namespace App {
     SDL_GPUDevice *gpu = NULL;
     TTF_TextEngine *textEngine = NULL;
     TTF_Font *font = NULL;
-    OverlayPipeline *overlayp = NULL;
+    TextPipeline *overlayp = NULL;
     Vec2 mousePosScreenSpace = Vec2(0.0f);
     Vec2 winSize = Vec2(0.0f);
     // SDF render
