@@ -65,16 +65,16 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
   SDL_AppResult setupRes = setupSDL(state);
   if (setupRes != SDL_APP_CONTINUE) return setupRes;
-  state.font = TTF_OpenFont("assets/Helvetica.ttf", 24);
+  state.font = TTF_OpenFont("assets/Helvetica.ttf", 18);
 
   SDL_GPUTextureFormat scFormat = SDL_GetGPUSwapchainTextureFormat(state.gpu, state.window);
   state.overlayp = new TextPipeline(scFormat, state.gpu);
   state.sdfp = new SDFPipeline(scFormat, state.gpu);
 
-  StringObject str1 = StringObject(state.textEngine, state.font, "Hello World");
+  StringObject str1 = StringObject(state.textEngine, state.font, "FPS: 9999.00");
   StringObject str2 = StringObject(state.textEngine, state.font, "Nice to meet you");
   str2.color = ORANGE;
-  str2.origin = Vec3{620.0f, 576.0f, 0.0f};
+  str2.origin = Vec3{660.0f, 580.0f, 0.0f};
   state.overlayp->strings.push_back(str1);
   state.overlayp->strings.push_back(str2);
 
@@ -161,6 +161,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
   // acquire command buffer
 	SDL_GPUCommandBuffer *cmdBuf = SDL_AcquireGPUCommandBuffer(state.gpu);
+  SDL_InsertGPUDebugLabel(cmdBuf, "Screen Render");
 	// acquire swapchain
 	SDL_GPUTexture* swapchain = NULL;
 	SDL_AcquireGPUSwapchainTexture(cmdBuf, state.window, &swapchain, NULL, NULL);

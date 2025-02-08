@@ -51,6 +51,8 @@ namespace App {
     Vec2(float x, float y) {
       this->x = x; this->y = y;
     }
+    float magnitude();
+    Vec2 normalize();
     Vec2 operator+(Vec2 b) {
       return Vec2{ x + b.x, y + b.y };
     }
@@ -70,6 +72,8 @@ namespace App {
     Vec3(float x, float y, float z) {
       this->x = x; this->y = y; this->z = z;
     }
+    float magnitude();
+    Vec3 normalize();
     Vec3 operator+(Vec3 b) {
       return Vec3{ x + b.x, y + b.y, z + b.z };
     }
@@ -89,6 +93,8 @@ namespace App {
     Vec4(float x, float y, float z, float w ) {
       this->x = x; this->y = y; this->z = z; this->w = w;
     }
+    float magnitude();
+    Vec4 normalize();
     Vec4 operator+(Vec4 b) {
       return Vec4{ x + b.x, y + b.y, z + b.z, w + b.w };
     }
@@ -117,11 +123,13 @@ namespace App {
     float* rowMajor();
     float* colMajor();
   };
+  Vec4 multiplyMat4(Mat4x4 a, Vec4 b);
+  Mat4x4 multiplyMat4(Mat4x4 a, Mat4x4 b);
   Mat4x4 identityMat4();
-  // Mat4x4 perspectiveMat4(float fovY, float aspectRatio, float near, float far);
-  // Mat4x4 orthoMat4(float left, float right, float top, float bottom, float near, float far);
+  Mat4x4 perspectiveMat4(float fovY, float aspectRatio, float near, float far);
+  Mat4x4 orthoMat4(float left, float right, float top, float bottom, float near, float far);
   Mat4x4 translationMat4(float x, float y, float z);
-  // Mat4x4 rotationQuatMat4(Vec3 axis, float degree);
-  // Mat4x4 rotationEulerMat4(float roll, float pitch, float yaw);
+  Mat4x4 rotationMat4(Vec3 axis, float degree);
+  Mat4x4 rotationEulerMat4(float roll, float pitch, float yaw);
   Mat4x4 scaleMat4(float x, float y, float z);
 }

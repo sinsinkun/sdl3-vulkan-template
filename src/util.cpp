@@ -247,6 +247,33 @@ SDL_FColor App::modAlpha(SDL_FColor clr, float a) {
 
 #pragma region Linear algebra
 
+float Vec2::magnitude() {
+	return SDL_sqrtf(x*x + y*y);
+}
+
+Vec2 Vec2::normalize() {
+	float v = magnitude();
+	return Vec2{x/v, y/v};
+}
+
+float Vec3::magnitude() {
+	return SDL_sqrtf(x*x + y*y + z*z);
+}
+
+Vec3 Vec3::normalize() {
+	float v = magnitude();
+	return Vec3{x/v, y/v, z/v};
+}
+
+float Vec4::magnitude() {
+	return SDL_sqrtf(x*x + y*y + z*z + w*w);
+}
+
+Vec4 Vec4::normalize() {
+	float v = magnitude();
+	return Vec4{x/v, y/v, z/v, w/v};
+}
+
 Mat4x4::Mat4x4(
   float i0, float i1, float i2, float i3,
   float i4, float i5, float i6, float i7,
@@ -279,11 +306,73 @@ float* Mat4x4::colMajor() {
   return cm;
 }
 
+Vec4 App::multiplyMat4(Mat4x4 a, Vec4 b) {
+	return Vec4 {
+		b.x * a.e00 + b.y * a.e01 + b.z * a.e02 + b.w * a.e03,
+		b.x * a.e10 + b.y * a.e11 + b.z * a.e12 + b.w * a.e13,
+		b.x * a.e20 + b.y * a.e21 + b.z * a.e22 + b.w * a.e23,
+		b.x * a.e30 + b.y * a.e31 + b.z * a.e32 + b.w * a.e33,
+	};
+}
+
+Mat4x4 App::multiplyMat4(Mat4x4 a, Mat4x4 b) {
+	return Mat4x4(
+		a.e00 * b.e00 + a.e10 * b.e01 + a.e20 * b.e02 + a.e30 * b.e03,
+		a.e00 * b.e10 + a.e10 * b.e11 + a.e20 * b.e12 + a.e30 * b.e13,
+		a.e00 * b.e20 + a.e10 * b.e21 + a.e20 * b.e22 + a.e30 * b.e23,
+		a.e00 * b.e30 + a.e10 * b.e31 + a.e20 * b.e32 + a.e30 * b.e33,
+
+		a.e01 * b.e00 + a.e11 * b.e01 + a.e21 * b.e02 + a.e31 * b.e03,
+    a.e01 * b.e10 + a.e11 * b.e11 + a.e21 * b.e12 + a.e31 * b.e13,
+    a.e01 * b.e20 + a.e11 * b.e21 + a.e21 * b.e22 + a.e31 * b.e23,
+    a.e01 * b.e30 + a.e11 * b.e31 + a.e21 * b.e32 + a.e31 * b.e33,
+
+		a.e02 * b.e00 + a.e12 * b.e01 + a.e22 * b.e02 + a.e32 * b.e03,
+		a.e02 * b.e10 + a.e12 * b.e11 + a.e22 * b.e12 + a.e32 * b.e13,
+		a.e02 * b.e20 + a.e12 * b.e21 + a.e22 * b.e22 + a.e32 * b.e23,
+		a.e02 * b.e30 + a.e12 * b.e31 + a.e22 * b.e32 + a.e32 * b.e33,
+
+		a.e03 * b.e00 + a.e13 * b.e01 + a.e23 * b.e02 + a.e33 * b.e03,
+		a.e03 * b.e10 + a.e13 * b.e11 + a.e23 * b.e12 + a.e33 * b.e13,
+		a.e03 * b.e20 + a.e13 * b.e21 + a.e23 * b.e22 + a.e33 * b.e23,
+		a.e03 * b.e30 + a.e13 * b.e31 + a.e23 * b.e32 + a.e33 * b.e33
+	);
+}
+
 Mat4x4 App::identityMat4() {
 	return Mat4x4(
 		1.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 1.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	);
+}
+
+Mat4x4 App::perspectiveMat4(float fovY, float aspectRatio, float near, float far) {
+	float f = SDL_tanf(SDL_PI_F * 0.5f - 0.5f * fovY * SDL_PI_F / 180.0f);
+	float range = 1.0f / (near - far);
+	float a = f / aspectRatio;
+	float c = far * range;
+	float d = near * far * range;
+	return Mat4x4(
+		a, 0.0f, 0.0f, 0.0f,
+		0.0f, f, 0.0f, 0.0f,
+		0.0f, 0.0f, c, d,
+		0.0f, 0.0f, -1.0f, 0.0f
+	);
+}
+
+Mat4x4 App::orthoMat4(float left, float right, float top, float bottom, float near, float far) {
+	float a = 2.0f / (right - left);
+	float b = 2.0f / (top - bottom);
+	float c = 1.0f / (near - far);
+	float d = (right + left) / (left - right);
+	float e = (top + bottom) / (bottom - top);
+	float f = near / (near - far);
+	return Mat4x4(
+		a, 0.0f, 0.0f, d,
+		0.0f, b, 0.0f, e,
+		0.0f, 0.0f, c, f,
 		0.0f, 0.0f, 0.0f, 1.0f
 	);
 }
@@ -295,6 +384,43 @@ Mat4x4 App::translationMat4(float x, float y, float z) {
     0.0f, 0.0f, 1.0f, z,
     0.0f, 0.0f, 0.0f, 1.0f
   };
+}
+
+Mat4x4 App::rotationMat4(Vec3 axis, float degree)  {
+	Vec3 n = axis.normalize();
+
+	return identityMat4();
+}
+
+Mat4x4 App::rotationEulerMat4(float roll, float pitch, float yaw) {
+	float a = roll * SDL_PI_F / 180.0f;
+	float cosa = SDL_cosf(a);
+	float sina = SDL_cosf(a);
+	float b = pitch * SDL_PI_F / 180.0f;
+	float cosb = SDL_cosf(b);
+	float sinb = SDL_cosf(b);
+	float c = yaw * SDL_PI_F / 180.0f;
+	float cosc = SDL_cosf(c);
+	float sinc = SDL_cosf(c);
+	Mat4x4 rx = Mat4x4(
+		1.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, cosa, -sina, 0.0f,
+		0.0f, sina, cosa, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	);
+	Mat4x4 ry = Mat4x4(
+		cosb, 0.0f, sinb, 0.0f,
+		0.0f, 1.0f, 0.0f, 0.0f,
+		-sinb, 0.0f, cosb, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	);
+	Mat4x4 rz = Mat4x4(
+		cosc, -sinc, 0.0f, 0.0f,
+		sinc, cosc, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	);
+	return multiplyMat4(multiplyMat4(rx, ry), rz);
 }
 
 Mat4x4 App::scaleMat4(float x, float y, float z) {
