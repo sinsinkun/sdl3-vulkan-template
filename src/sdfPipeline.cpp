@@ -205,3 +205,104 @@ void SDFPipeline::destroy() {
 }
 
 #pragma endregion SDFRenderer
+
+#pragma region SDF math
+
+float App::sdfToCir(Vec2 point, Vec2 center, float radius) {
+	Vec2 v = center - point;
+  return v.magnitude() - radius;
+};
+
+float App::sdfToLine(Vec2 point, Vec2 p1, Vec2 p2) {
+	Vec2 pa = point - p1;
+	Vec2 ba = p2 - p1;
+	float h = SDL_clamp(dot(pa, ba) / dot(ba, ba), 0.0f, 1.0f);
+	return (pa - ba * h).magnitude();
+}
+
+float App::sdfToTriangle(Vec2 point, Vec2 p0, Vec2 p1, Vec2 p2) {
+	Vec2 e0 = p1 - p0;
+	Vec2 v0 = point - p0;
+	Vec2 d0 = v0 - e0 * SDL_clamp(dot(v0, e0) / dot(e0, e0), 0.0f, 1.0f);
+	float d0d = dot(d0, d0);
+	Vec2 e1 = p2 - p1;
+	Vec2 v1 = point - p1;
+	Vec2 d1 = v1 - e1 * SDL_clamp(dot(v1, e1) / dot(e1, e1), 0.0f, 1.0f);
+	float d1d = dot(d1, d1);
+	Vec2 e2 = p0 - p2;
+	Vec2 v2 = point - p2;
+	Vec2 d2 = v2 - e2 * SDL_clamp(dot(v2, e2) / dot(e2, e2), 0.0f, 1.0f);
+	float d2d = dot(d2, d2);
+
+	float o = e0.x * e2.y - e0.y * e2.x;
+	float y0 = o * (v0.x * e0.y - v0.y * e0.x);
+	float y1 = o * (v1.x * e1.y - v1.y * e1.x);
+	float y2 = o * (v2.x * e2.y - v2.y * e2.x);
+	float minD = d0d;
+	if (d1d < minD) minD = d1d;
+	if (d2d < minD) minD = d2d;
+	float minY = y0;
+	if (y1 < minY) minY = y1;
+	if (y2 < minY) minY = y2;
+	float sign = minY > 0.0f ? -1.0f : 1.0f;
+
+	return SDL_sqrtf(minD) * sign;
+}
+
+// vec2 d = abs(p - c) - s;
+// return length(max(d, vec2(0.0))) + min(max(d.x, d.y), 0.0);
+float App::sdfToRect(Vec2 point, Vec2 center, Vec2 size) {
+	Vec2 absP = point - center;
+	if (absP.x < 0.0f) absP.x = -1.0f * absP.x;
+	if (absP.y < 0.0f) absP.y = -1.0f * absP.y;
+	Vec2 d0 = absP - size;
+	Vec2 d = d0;
+	if (d.x < 0.0f) d.x = 0.0f;
+	if (d.y < 0.0f) d.y = 0.0f;
+	float outer = d.magnitude();
+	float inner = SDL_min(SDL_max(d0.x, d0.y), 0.0f);
+	return outer + inner;
+}
+
+float App::sdfWithCorner(float sdf, float radius) {
+	return sdf - radius;
+}
+
+float App::sdfAsOutline(float sdf, float thickness) {
+	return SDL_fabsf(sdf) - thickness;
+}
+
+float App::calculateSdf(Vec2 point, float maxDist, std::vector<SDFObject> *objs) {
+	float sdf = maxDist;
+	for (int i=0; i < objs->size(); i++) {
+		SDFRenderObject obj = objs->at(i).renderObject();
+		float d = maxDist;
+		switch (obj.objType) {
+			case 1:
+				d = sdfToCir(point, obj.center, obj.radius);
+				break;
+			case 2:
+				d = sdfToLine(point, obj.center, obj.v2);
+				break;
+			case 3:
+				d = sdfToTriangle(point, obj.center, obj.v2, obj.v3);
+				break;
+			case 4:
+				d = sdfToRect(point, obj.center, obj.v2);
+				break;
+			default:
+				break;
+		}
+		if (obj.cornerRadius > 0.0f) d = sdfWithCorner(d, obj.cornerRadius);
+		if (obj.thickness > 0.0f) d = sdfAsOutline(d, obj.thickness);
+		if (d < sdf) sdf = d;
+	}
+	return sdf;
+}
+
+float App::calculateRayMarch(Vec2 point, Vec2 direction, float maxDist, std::vector<SDFObject> *objs) {
+	// todo
+	return 0.0f;
+}
+
+#pragma endregion SDF math

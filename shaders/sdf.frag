@@ -21,6 +21,7 @@ layout(set=3, binding=0) uniform SysData {
   vec2 lightPos;
   vec4 lightColor;
   float lightMaxDist;
+  uint objCount;
 };
 
 layout(location=0) out vec4 outColor;
@@ -92,9 +93,9 @@ float opSmoothMerge(float sd1, float sd2, float r) {
 
 struct SdfOut { float dist; vec4 color; };
 SdfOut calculateSdf(vec2 p, float maxDist) {
-  float dist;
+  float dist = maxDist;
   vec4 clr = vec4(0.0);
-  for (uint i = 0; i < sdfObjects.length(); i++) {
+  for (uint i = 0; i < objCount; i++) {
     SDFObject obj = sdfObjects[i];
     float d = maxDist;
     if (obj.objType == 1) { // circle
@@ -129,16 +130,16 @@ SdfOut calculateSdf(vec2 p, float maxDist) {
 }
 
 struct RayMarchOut { float dist; float minSdf; };
-RayMarchOut rayMarch(vec2 origin, vec2 dir, float maxDist) {
-  vec2 ndir = normalize(dir);
+RayMarchOut rayMarch(vec2 origin, vec2 target, float maxDist) {
+  vec2 ndir = normalize(target - origin);
   vec2 p = origin;
   SdfOut sdf = calculateSdf(p, maxDist);
   float rayDist = sdf.dist;
   float minSdf = sdf.dist;
-  uint iter = 0;
+  int iter = 0;
   while (rayDist < maxDist && sdf.dist > 0.999 && iter < 99999) {
     iter += 1;
-    p = p + ndir * sdf.dist;
+    p = p + (ndir * sdf.dist);
     sdf = calculateSdf(p, maxDist);
     rayDist += sdf.dist;
     if (sdf.dist < minSdf) {
@@ -157,7 +158,14 @@ RayMarchOut rayMarch(vec2 origin, vec2 dir, float maxDist) {
 // ----------------------------------------- //
 void main() {
   vec2 p = gl_FragCoord.xy;
-  // calculate SDF
+  // calculate SDF/D/RM
   SdfOut sdf = calculateSdf(p, 10000.0);
+  float distFromLight = distance(p, lightPos);
+  RayMarchOut rm = rayMarch(p, lightPos, distFromLight);
+  // combine colors
   outColor = sdf.color;
+  if (lightMaxDist > 0.01 && sdf.dist > -1.0) {
+    vec4 lc = lightColor * smoothstep(lightMaxDist, 0.0, distFromLight);
+    outColor += lc;
+  }
 }

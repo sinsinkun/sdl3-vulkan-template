@@ -70,11 +70,12 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   SDL_GPUTextureFormat scFormat = SDL_GetGPUSwapchainTextureFormat(state.gpu, state.window);
   state.overlayp = new TextPipeline(scFormat, state.gpu);
   state.sdfp = new SDFPipeline(scFormat, state.gpu);
+  state.sdfpDebug = new SDFPipeline(scFormat, state.gpu);
 
   StringObject str1 = StringObject(state.textEngine, state.font, "FPS: 9999.00");
-  StringObject str2 = StringObject(state.textEngine, state.font, "Nice to meet you");
+  StringObject str2 = StringObject(state.textEngine, state.font, "Debug: ");
   str2.color = ORANGE;
-  str2.origin = Vec3{660.0f, 580.0f, 0.0f};
+  str2.origin = Vec3{0.0f, 580.0f, 0.0f};
   state.overlayp->strings.push_back(str1);
   state.overlayp->strings.push_back(str2);
 
@@ -86,6 +87,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   rect1.withColor(modAlpha(GREEN, 0.8f));
   rect1.withRoundCorner(10.0f);
   SDFObject tri1 = SDFObject::triangle(Vec2 { 100.0f, 400.0f}, Vec2 { 220.0f, 330.0f }, Vec2 { 180.0f, 500.0f });
+  tri1.withColor(GRAY);
   tri1.withRoundCorner(5.0f);
   state.sdfObjects.push_back(cir1);
   state.sdfObjects.push_back(cir2);
@@ -108,12 +110,15 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
         return SDL_APP_SUCCESS;
       }
       if (event->key.scancode == SDL_SCANCODE_F1) {
-        state.printFps = true;
+        state.overlayp->strings[0].visible = true;
+      }
+      if (event->key.scancode == SDL_SCANCODE_SPACE) {
+        state.sdfPosUpdate = !state.sdfPosUpdate;
       }
       break;
     case SDL_EVENT_KEY_UP:
       if (event->key.scancode == SDL_SCANCODE_F1) {
-        state.printFps = false;
+        state.overlayp->strings[0].visible = false;
       }
       break;
     case SDL_EVENT_MOUSE_MOTION:
@@ -125,6 +130,28 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
       break;
   }
   return SDL_APP_CONTINUE;
+}
+
+float rayMarchDebug(
+  std::vector<SDFObject> *cirs, Vec2 point, Vec2 target, 
+  float maxDist, std::vector<SDFObject> *objs
+) {
+  Vec2 dir = (target - point).normalize();
+  Vec2 p = point;
+  float sdf = calculateSdf(p, maxDist, objs);
+  float rayDist = sdf;
+  int iter = 0;
+  while (rayDist < maxDist && sdf > 0.999f && iter < 99999) {
+    iter += 1;
+    p = p + dir * sdf;
+    sdf = calculateSdf(p, maxDist, objs);
+    SDFObject cir = SDFObject::circle(p, sdf);
+    cir.asOutline(1.0f);
+    cirs->push_back(cir);
+    rayDist += sdf;
+  }
+  if (rayDist > maxDist) rayDist = maxDist;
+  return rayDist;
 }
 
 // update/render loop
@@ -150,14 +177,44 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     state.timeSinceLastFps += delta;
   }
 
+  // update winSize
+  int wx, wy;
+  SDL_GetWindowSize(state.window, &wx, &wy);
+  state.winSize = Vec2 { (float)wx, (float)wy };
+
   // update sdf objects
-  SDFObject* obj0 = &state.sdfObjects.at(0);
-  obj0->updatePosition(state.mousePosScreenSpace);
-  SDFObject* obj1 = &state.sdfObjects.at(1);
-  obj1->updatePosition(Vec2(
-    300.0f + 100.0f * SDL_sin(0.001f * (state.lifetime / SDL_NS_PER_MS)),
-    300.0f + 100.0f * SDL_cos(0.001f * (state.lifetime / SDL_NS_PER_MS))
-  ));
+  if (state.sdfPosUpdate) {
+    // SDFObject* obj0 = &state.sdfObjects.at(0);
+    // obj0->updatePosition(state.mousePosScreenSpace);
+    SDFObject* obj1 = &state.sdfObjects.at(1);
+    obj1->updatePosition(Vec2(
+      300.0f + 100.0f * SDL_sin(0.001f * (state.lifetime / SDL_NS_PER_MS)),
+      300.0f + 100.0f * SDL_cos(0.001f * (state.lifetime / SDL_NS_PER_MS))
+    ));
+    SDFObject* obj3 = &state.sdfObjects.at(3);
+    obj3->updatePosition(Vec2(
+      100.0f,
+      400.0f + 100.0f * SDL_sin(0.001f * (state.lifetime / SDL_NS_PER_MS))
+    ));
+  }
+  
+  // update debug sdf objects
+  Vec2 lightPos { 200.0f, 200.0f };
+  std::vector<SDFObject> debugCirs;
+  float sdf = calculateSdf(state.mousePosScreenSpace, 10000.0f, &state.sdfObjects);
+  SDFObject sdfCir = SDFObject::circle(state.mousePosScreenSpace, SDL_fabsf(sdf));
+  sdfCir.asOutline(1.0f);
+  if (sdf < 0.0f) sdfCir.withColor(BLACK);
+  debugCirs.push_back(sdfCir);
+  SDFObject lineToLight = SDFObject::line(state.mousePosScreenSpace, lightPos, 1.0f);
+  debugCirs.push_back(lineToLight);
+  float distFromLight = (lightPos - state.mousePosScreenSpace).magnitude();
+  float rm = rayMarchDebug(&debugCirs, state.mousePosScreenSpace, lightPos, distFromLight, &state.sdfObjects);
+
+  // update debug text
+  char str[400];
+  SDL_snprintf(str, sizeof(str), "Debug | SDF: %.2f, D: %.2f, RM: %.2f", sdf, distFromLight, rm);
+  state.overlayp->strings[1].updateText(str);
 
   // acquire command buffer
 	SDL_GPUCommandBuffer *cmdBuf = SDL_AcquireGPUCommandBuffer(state.gpu);
@@ -184,15 +241,24 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   state.sdfp->render(
     cmdBuf, pass, swapchain,
     SDFSysData {
-      .screenSize = Vec2(0.0f),
-      .lightPos = Vec2(0.0f),
-      .lightColor = SDL_FColor{0.2f, 0.2f, 0.5f, 0.8f},
-      .lightDist = 0.0f,
+      .screenSize = state.winSize,
+      .lightPos = lightPos,
+      .lightColor = SDL_FColor{0.8f, 0.8f, 0.2f, 0.8f},
+      .lightDist = 500.0f,
+      .objCount = (Uint32)state.sdfObjects.size()
     }
   );
-  int wx, wy;
-  SDL_GetWindowSize(state.window, &wx, &wy);
-  state.winSize = Vec2 { (float)wx, (float)wy };
+  state.sdfpDebug->refreshObjects(debugCirs);
+  state.sdfpDebug->render(
+    cmdBuf, pass, swapchain,
+    SDFSysData {
+      .screenSize = state.winSize,
+      .lightPos = state.mousePosScreenSpace,
+      .lightColor = BLACK,
+      .lightDist = 0.0f,
+      .objCount = (Uint32)debugCirs.size()
+    }
+  );
   state.overlayp->render(cmdBuf, pass, swapchain, state.winSize);
 
   // finish render pass
@@ -211,6 +277,8 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result) {
   SDL_Log("Closing SDL3");
   state.sdfp->destroy();
   delete state.sdfp;
+  state.sdfpDebug->destroy();
+  delete state.sdfpDebug;
   state.overlayp->destroy();
   delete state.overlayp;
   TTF_CloseFont(state.font);

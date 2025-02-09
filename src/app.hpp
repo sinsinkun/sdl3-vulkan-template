@@ -20,9 +20,10 @@ namespace App {
     // SDF render
     std::vector<SDFObject> sdfObjects;
     SDFPipeline *sdfp = NULL;
+    SDFPipeline *sdfpDebug = NULL;
+    bool sdfPosUpdate = true;
     // FPS debug helpers
     Uint64 lifetime = 0;
     Uint64 timeSinceLastFps = 0;
-    bool printFps = false;
   };
 }

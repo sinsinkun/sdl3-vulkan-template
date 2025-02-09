@@ -35,6 +35,7 @@ namespace App {
   SDL_FColor modAlpha(SDL_FColor in, float a);
   static SDL_FColor TRANSPARENT{0.0f, 0.0f, 0.0f, 0.0f};
   static SDL_FColor BLACK{0.0f, 0.0f, 0.0f, 1.0f};
+  static SDL_FColor GRAY{0.5f, 0.5f, 0.5f, 1.0f};
   static SDL_FColor WHITE{1.0f, 1.0f, 1.0f, 1.0f};
   static SDL_FColor RED{1.0f, 0.0f, 0.0f, 1.0f};
   static SDL_FColor GREEN{0.0f, 1.0f, 0.0f, 1.0f};

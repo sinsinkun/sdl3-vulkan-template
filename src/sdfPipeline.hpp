@@ -50,6 +50,7 @@ namespace App {
     Vec2 lightPos;
     SDL_FColor lightColor;
     float lightDist;
+    Uint32 objCount;
   };
   class SDFPipeline {
   public:
@@ -64,4 +65,13 @@ namespace App {
     );
     void destroy();
   };
+  // sdf math
+  float sdfToCir(Vec2 point, Vec2 center, float radius);
+  float sdfToLine(Vec2 point, Vec2 p1, Vec2 p2);
+  float sdfToTriangle(Vec2 point, Vec2 p1, Vec2 p2, Vec2 p3);
+  float sdfToRect(Vec2 point, Vec2 center, Vec2 size);
+  float sdfWithCorner(float sdf, float radius);
+  float sdfAsOutline(float sdf, float thickness);
+  float calculateSdf(Vec2 point, float maxDist, std::vector<SDFObject> *objs);
+  float calculateRayMarch(Vec2 point, Vec2 direction, float maxDist, std::vector<SDFObject> *objs);
 }
