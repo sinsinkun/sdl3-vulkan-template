@@ -123,6 +123,9 @@ namespace App {
     float* rowMajor();
     float* colMajor();
   };
+  float dot(Vec2 a, Vec2 b);
+  float dot(Vec3 a, Vec3 b);
+  float dot(Vec4 a, Vec4 b);
   Vec4 multiplyMat4(Mat4x4 a, Vec4 b);
   Mat4x4 multiplyMat4(Mat4x4 a, Mat4x4 b);
   Mat4x4 identityMat4();

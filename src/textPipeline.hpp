@@ -15,7 +15,8 @@ namespace App {
     TTF_Text *ttfText = NULL;
     TTF_GPUAtlasDrawSequence *sequence = NULL;
     SDL_FColor color = WHITE;
-    Vec3 origin {0.0f, 0.0f, 0.0f };
+    Vec3 origin {0.0f, 0.0f, 0.0f};
+    bool visible = true;
     void updateText(std::string text);
   };
   class TextPipeline {

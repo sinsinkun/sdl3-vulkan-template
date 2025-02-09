@@ -306,6 +306,18 @@ float* Mat4x4::colMajor() {
   return cm;
 }
 
+float App::dot(Vec2 a, Vec2 b) {
+	return a.x * b.x + a.y * b.y;
+}
+
+float App::dot(Vec3 a, Vec3 b) {
+	return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+
+float App::dot(Vec4 a, Vec4 b) {
+	return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
+}
+
 Vec4 App::multiplyMat4(Mat4x4 a, Vec4 b) {
 	return Vec4 {
 		b.x * a.e00 + b.y * a.e01 + b.z * a.e02 + b.w * a.e03,

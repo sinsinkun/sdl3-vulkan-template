@@ -103,10 +103,13 @@ void TextPipeline::render(
 	if (strings.empty()) { return; }
 	std::vector<RenderVertex> vertices;
 	std::vector<Uint16> indices;
+	SDL_GPUTexture *atlas = NULL;
 	// process each StringObject individually
 	for (int i=0; i<strings.size(); i++) {
+		if (!strings[i].visible) continue;
 		// move through sequence of glyphs
 		strings[i].sequence = TTF_GetGPUTextDrawData(strings[i].ttfText);
+		if (atlas == NULL) atlas = strings[i].sequence->atlas_texture;
 		for (TTF_GPUAtlasDrawSequence *seq = strings[i].sequence; seq != NULL; seq = seq->next) {
 			addGlyphToVertices(seq, &vertices, &indices, strings[i].color, strings[i].origin);
 		}
@@ -117,7 +120,7 @@ void TextPipeline::render(
 	// draw pipeline
   SDL_BindGPUGraphicsPipeline(pass, pipeline);
 	SDL_BindGPUFragmentSamplers(pass, 0, new SDL_GPUTextureSamplerBinding {
-    .texture = strings[0].sequence->atlas_texture,
+    .texture = atlas,
     .sampler = sampler
   }, 1);
 	SDL_BindGPUVertexBuffers(pass, 0, new SDL_GPUBufferBinding {
@@ -132,6 +135,7 @@ void TextPipeline::render(
 	int index_offset = 0, vertex_offset = 0;
 	// dynamically offset buffers for each glyph
 	for (int i=0; i<strings.size(); i++) {
+		if (!strings[i].visible) continue;
 		for (TTF_GPUAtlasDrawSequence *seq = strings[i].sequence; seq != NULL; seq = seq->next) {
 			SDL_DrawGPUIndexedPrimitives(pass, seq->num_indices, 1, index_offset, vertex_offset, 0);
 			index_offset += seq->num_indices;
