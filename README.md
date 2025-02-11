@@ -24,11 +24,8 @@ int main(int argc, char *argv[]) {
 Compiled using g++ from the default msys2 location:
 - C:/msys64/ucrt64/bin/g++.exe
 
-SDL3 is assumed to be manually installed at C:/Programs/SDL3
-(msys2 SDL3 package can't be linked statically)
-
-SDL3_ttf is assumed to be manually installed at C:/Programs/SDL3_ttf
-(SDL3_ttf is not available on msys2)
+SDL3/SDL3_ttf/SDL3_image is assumed to be manually installed at C:/Programs/SDL3
+(msys2 packages prevents statically linking standard libraries)
 
 SDL3 installation instructions from source:
 (prerequisite: CMake)
@@ -41,7 +38,7 @@ SDL3 installation instructions from source:
 6. `cmake --build . --config Release`
 7. `cmake --install .`
 
-Repeat the above for SDL3_ttf
+Repeat the above for SDL3_ttf and SDL3_image
 
 ## Build
 .vscode is setup to run debug mode in VSCode (F5).

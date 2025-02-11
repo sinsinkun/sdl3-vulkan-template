@@ -28,6 +28,10 @@ SDL_AppResult setupSDL(AppState& state) {
   SDL_Log("Window initialized");
   SDL_SetWindowMinimumSize(state.window, 400, 300);
 
+  // load icon
+  state.winIcon = IMG_Load("assets/icon.png");
+  SDL_SetWindowIcon(state.window, state.winIcon);
+
   // can add other shader formats: SDL_GPU_SHADERFORMAT_DXIL | SDL_GPU_SHADERFORMAT_MSL
   state.gpu = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV, true, NULL);
   if (!state.gpu) {
@@ -107,6 +111,10 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
     // triggers on last window close and other things. End the program.
     case SDL_EVENT_QUIT:  
       return SDL_APP_SUCCESS;
+    case SDL_EVENT_WINDOW_RESIZED:
+      state.winSize.x = event->window.data1;
+      state.winSize.y = event->window.data2;
+      break;
     case SDL_EVENT_KEY_DOWN:
       // quit if user hits ESC key
       if (event->key.scancode == SDL_SCANCODE_ESCAPE) {
@@ -179,11 +187,6 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   } else {
     state.timeSinceLastFps += delta;
   }
-
-  // update winSize
-  int wx, wy;
-  SDL_GetWindowSize(state.window, &wx, &wy);
-  state.winSize = Vec2 { (float)wx, (float)wy };
 
   // update sdf objects
   if (state.sdfPosUpdate) {
@@ -289,6 +292,7 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result) {
   TTF_Quit();
   SDL_ReleaseWindowFromGPUDevice(state.gpu, state.window);
   SDL_DestroyGPUDevice(state.gpu);
+  SDL_DestroySurface(state.winIcon);
   SDL_DestroyWindow(state.window);
   SDL_Quit();
 }

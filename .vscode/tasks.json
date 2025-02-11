@@ -13,10 +13,9 @@
         "${fileDirname}\\build\\debug.exe",
         "-IC:\\Programs\\SDL3\\include", 
         "-LC:\\Programs\\SDL3\\lib",
-        "-IC:\\Programs\\SDL3_ttf\\include", 
-        "-LC:\\Programs\\SDL3_ttf\\lib",
         "-lSDL3",
-        "-lSDL3_ttf"
+        "-lSDL3_ttf",
+        "-lSDL3_image"
       ],
       "options": {
         "cwd": "${fileDirname}"
