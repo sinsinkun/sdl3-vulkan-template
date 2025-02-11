@@ -140,7 +140,7 @@ SDFPipeline::SDFPipeline(SDL_GPUTextureFormat targetFormat, SDL_GPUDevice *gpu) 
 	// create storage buffer for objects
 	objsBuffer = SDL_CreateGPUBuffer(device, new SDL_GPUBufferCreateInfo {
 		.usage = SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
-		.size = 100 * sizeof(SDFRenderObject),
+		.size = 1000 * sizeof(SDFRenderObject),
 	});
 	// release shaders
 	SDL_ReleaseGPUShader(device, vertShader);

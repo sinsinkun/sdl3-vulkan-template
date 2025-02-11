@@ -55,6 +55,9 @@ SDL_AppResult setupSDL(AppState& state) {
   }
   SDL_Log("Started text engine");
 
+  // maintain a lower poll rate
+  SDL_SetHint(SDL_HINT_MAIN_CALLBACK_RATE, "10000");
+
   return SDL_APP_CONTINUE;
 }
 
@@ -140,15 +143,15 @@ float rayMarchDebug(
   Vec2 p = point;
   float sdf = calculateSdf(p, maxDist, objs);
   float rayDist = sdf;
-  int iter = 0;
-  while (rayDist < maxDist && sdf > 0.999f && iter < 99999) {
-    iter += 1;
+  // note: pipeline has a max obj count of 1000
+  for (int i=0; i < 1000; i++) {
     p = p + dir * sdf;
     sdf = calculateSdf(p, maxDist, objs);
     SDFObject cir = SDFObject::circle(p, sdf);
     cir.asOutline(1.0f);
     cirs->push_back(cir);
     rayDist += sdf;
+    if (rayDist > maxDist || sdf < 0.01f) break;
   }
   if (rayDist > maxDist) rayDist = maxDist;
   return rayDist;
@@ -163,7 +166,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   Uint64 delta = newTime - state.lifetime;
   if (delta < 100001) return SDL_APP_CONTINUE;
   state.lifetime = newTime;
-  if (state.timeSinceLastFps > (SDL_NS_PER_SECOND / 10)) {
+  if (state.timeSinceLastFps > (SDL_NS_PER_SECOND / 5)) {
     state.timeSinceLastFps = 0;
     float fps = 0.0f;
     if (delta != 0) fps = SDL_NS_PER_SECOND / delta;
@@ -242,7 +245,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     cmdBuf, pass, swapchain,
     SDFSysData {
       .screenSize = state.winSize,
-      .lightPos = lightPos,
+      .lightPos = state.mousePosScreenSpace,
       .lightColor = SDL_FColor{0.8f, 0.8f, 0.2f, 0.8f},
       .lightDist = 500.0f,
       .objCount = (Uint32)state.sdfObjects.size()
@@ -253,7 +256,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     cmdBuf, pass, swapchain,
     SDFSysData {
       .screenSize = state.winSize,
-      .lightPos = state.mousePosScreenSpace,
+      .lightPos = Vec2(0.0f),
       .lightColor = BLACK,
       .lightDist = 0.0f,
       .objCount = (Uint32)debugCirs.size()
