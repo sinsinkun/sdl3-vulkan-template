@@ -136,14 +136,15 @@ RayMarchOut rayMarch(vec2 origin, vec2 target, float maxDist) {
   SdfOut sdf = calculateSdf(p, maxDist);
   float rayDist = sdf.dist;
   float minSdf = sdf.dist;
-  int iter = 0;
-  while (rayDist < maxDist && sdf.dist > 0.999 && iter < 99999) {
-    iter += 1;
+  for (int i=0; i<99999; i++) {
     p = p + (ndir * sdf.dist);
     sdf = calculateSdf(p, maxDist);
     rayDist += sdf.dist;
     if (sdf.dist < minSdf) {
       minSdf = sdf.dist;
+    }
+    if (rayDist > maxDist || sdf.dist < 0.01) {
+      break;
     }
   }
 
@@ -158,22 +159,22 @@ RayMarchOut rayMarch(vec2 origin, vec2 target, float maxDist) {
 // ----------------------------------------- //
 void main() {
   vec2 p = gl_FragCoord.xy;
-  float shadowSmoothing = 4.0;
+  float shadowSmoothing = 2.0;
   // calculate SDF/D/RM
   SdfOut sdf = calculateSdf(p, 10000.0);
   float distFromLight = distance(p, lightPos);
-  vec2 shadowOffset = step(-1.0, lightMaxDist) * normalize(p - lightPos) * shadowSmoothing;
+  vec2 shadowOffset = normalize(p - lightPos) * shadowSmoothing;
   RayMarchOut rm = rayMarch(p - shadowOffset, lightPos, distFromLight);
   // combine colors
   outColor = sdf.color;
-  if (lightMaxDist > 0.01 && sdf.dist > -1.0) {
-    // distance attenuation
-    vec4 lc = lightColor * smoothstep(lightMaxDist, 0.0, distFromLight);
-    // shadow smoothing
-    if (distFromLight > shadowSmoothing) {
-      lc = lc * smoothstep(0.0, shadowSmoothing, rm.minSdf);
-    }
+  if (lightMaxDist > 0.01) {
+    // lighting
+    float inLight = step(distFromLight, rm.dist);
+    float attenuation = smoothstep(lightMaxDist, 0.0, distFromLight);
+    float smoothing = step(shadowSmoothing, rm.dist) * smoothstep(0.0, shadowSmoothing, rm.minSdf);
+    if (rm.dist < shadowSmoothing) smoothing = 1.0;
+    vec4 lc = lightColor * inLight * attenuation * smoothing;
     // shadows from objects
-    outColor += lc * smoothstep(1.0, 0.0, abs(distFromLight - rm.dist));
+    outColor += lc;
   }
 }
