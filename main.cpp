@@ -190,32 +190,35 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
   // update sdf objects
   if (state.sdfPosUpdate) {
+    state.sdfTime += delta;
+    state.sdfLightPos = state.mousePosScreenSpace;
     // SDFObject* obj0 = &state.sdfObjects.at(0);
     // obj0->updatePosition(state.mousePosScreenSpace);
     SDFObject* obj1 = &state.sdfObjects.at(1);
     obj1->updatePosition(Vec2(
-      300.0f + 100.0f * SDL_sin(0.001f * (state.lifetime / SDL_NS_PER_MS)),
-      300.0f + 100.0f * SDL_cos(0.001f * (state.lifetime / SDL_NS_PER_MS))
+      300.0f + 100.0f * SDL_sin(0.001f * (state.sdfTime / SDL_NS_PER_MS)),
+      300.0f + 100.0f * SDL_cos(0.001f * (state.sdfTime / SDL_NS_PER_MS))
     ));
     SDFObject* obj3 = &state.sdfObjects.at(3);
     obj3->updatePosition(Vec2(
       100.0f,
-      400.0f + 100.0f * SDL_sin(0.001f * (state.lifetime / SDL_NS_PER_MS))
+      400.0f + 100.0f * SDL_sin(0.001f * (state.sdfTime / SDL_NS_PER_MS))
     ));
   }
   
   // update debug sdf objects
-  Vec2 lightPos { 200.0f, 200.0f };
   std::vector<SDFObject> debugCirs;
   float sdf = calculateSdf(state.mousePosScreenSpace, 10000.0f, &state.sdfObjects);
   SDFObject sdfCir = SDFObject::circle(state.mousePosScreenSpace, SDL_fabsf(sdf));
   sdfCir.asOutline(1.0f);
   if (sdf < 0.0f) sdfCir.withColor(BLACK);
   debugCirs.push_back(sdfCir);
-  SDFObject lineToLight = SDFObject::line(state.mousePosScreenSpace, lightPos, 1.0f);
+  SDFObject lineToLight = SDFObject::line(state.mousePosScreenSpace, state.sdfLightPos, 1.0f);
   debugCirs.push_back(lineToLight);
-  float distFromLight = (lightPos - state.mousePosScreenSpace).magnitude();
-  float rm = rayMarchDebug(&debugCirs, state.mousePosScreenSpace, lightPos, distFromLight, &state.sdfObjects);
+  float distFromLight = (state.sdfLightPos - state.mousePosScreenSpace).magnitude();
+  float rm = rayMarchDebug(
+    &debugCirs, state.mousePosScreenSpace, state.sdfLightPos, distFromLight, &state.sdfObjects
+  );
 
   // update debug text
   char str[400];
@@ -248,9 +251,9 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     cmdBuf, pass, swapchain,
     SDFSysData {
       .screenSize = state.winSize,
-      .lightPos = state.mousePosScreenSpace,
+      .lightPos = state.sdfLightPos,
       .lightColor = SDL_FColor{0.8f, 0.8f, 0.2f, 0.8f},
-      .lightDist = 500.0f,
+      .lightDist = 800.0f,
       .objCount = (Uint32)state.sdfObjects.size()
     }
   );

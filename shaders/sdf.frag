@@ -140,11 +140,11 @@ RayMarchOut rayMarch(vec2 origin, vec2 target, float maxDist) {
     p = p + (ndir * sdf.dist);
     sdf = calculateSdf(p, maxDist);
     rayDist += sdf.dist;
-    if (sdf.dist < minSdf) {
-      minSdf = sdf.dist;
-    }
     if (rayDist > maxDist || sdf.dist < 0.01) {
       break;
+    }
+    if (sdf.dist < minSdf) {
+      minSdf = sdf.dist;
     }
   }
 

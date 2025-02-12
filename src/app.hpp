@@ -20,6 +20,8 @@ namespace App {
     Vec2 mousePosScreenSpace = Vec2(0.0f);
     Vec2 winSize = Vec2(800.0f, 600.0f);
     // SDF render
+    Uint64 sdfTime = 0;
+    Vec2 sdfLightPos = Vec2(0.0f);
     std::vector<SDFObject> sdfObjects;
     SDFPipeline *sdfp = NULL;
     SDFPipeline *sdfpDebug = NULL;
