@@ -285,6 +285,10 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 void SDL_AppQuit(void *appstate, SDL_AppResult result) {
   AppState& state = *static_cast<AppState*>(appstate);
   SDL_Log("Closing SDL3");
+  for (int i=0; i<state.overlayStrs.size(); i++) {
+    TTF_DestroyText(state.overlayStrs[i].ttfText);
+  }
+  state.overlayStrs.clear();
   state.sdfp->destroy();
   delete state.sdfp;
   state.sdfpDebug->destroy();
