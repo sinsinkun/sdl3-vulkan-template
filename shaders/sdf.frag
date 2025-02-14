@@ -159,22 +159,23 @@ RayMarchOut rayMarch(vec2 origin, vec2 target, float maxDist) {
 // ----------------------------------------- //
 void main() {
   vec2 p = gl_FragCoord.xy;
-  float shadowSmoothing = 2.0;
   // calculate SDF/D/RM
   SdfOut sdf = calculateSdf(p, 10000.0);
-  float distFromLight = distance(p, lightPos);
-  vec2 shadowOffset = normalize(p - lightPos) * shadowSmoothing;
-  RayMarchOut rm = rayMarch(p - shadowOffset, lightPos, distFromLight);
-  // combine colors
   outColor = sdf.color;
+  // add lighting
   if (lightMaxDist > 0.01) {
+    // calculations
+    float shadowSmoothing = 2.0;
+    float distFromLight = distance(p, lightPos);
+    vec2 shadowOffset = normalize(p - lightPos) * shadowSmoothing;
+    RayMarchOut rm = rayMarch(p - shadowOffset, lightPos, distFromLight);
     // lighting
     float inLight = step(distFromLight, rm.dist);
     float attenuation = smoothstep(lightMaxDist, 0.0, distFromLight);
     float smoothing = step(shadowSmoothing, rm.dist) * smoothstep(0.0, shadowSmoothing, rm.minSdf);
     if (rm.dist < shadowSmoothing) smoothing = 1.0;
     vec4 lc = lightColor * inLight * attenuation * smoothing;
-    // shadows from objects
+    // add to output
     outColor += lc;
   }
 }
