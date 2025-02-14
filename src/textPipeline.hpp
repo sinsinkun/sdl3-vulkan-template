@@ -24,6 +24,13 @@ namespace App {
     static const int MAX_VERT_COUNT = 2000;
     static const int MAX_INDEX_COUNT = 4000;
     TextPipeline(SDL_GPUTextureFormat targetFormat, SDL_GPUDevice *gpu);
+    std::vector<StringObject> strings;
+    void render(
+      SDL_GPUCommandBuffer *cmdBuf, SDL_GPURenderPass *pass,
+      SDL_GPUTexture* target, Vec2 targetSize
+    );
+    void destroy();
+  private:
     SDL_GPUDevice *device = NULL;
     SDL_GPUGraphicsPipeline *pipeline = NULL;
     SDL_GPUSampler *sampler = NULL;
@@ -32,11 +39,5 @@ namespace App {
     SDL_GPUBuffer *indexBuf = NULL;
     int vertCount = 0;
     int indexCount = 0;
-    std::vector<StringObject> strings;
-    void render(
-      SDL_GPUCommandBuffer *cmdBuf, SDL_GPURenderPass *pass,
-      SDL_GPUTexture* target, Vec2 targetSize
-    );
-    void destroy();
   };
 }

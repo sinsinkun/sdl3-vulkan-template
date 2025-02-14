@@ -55,15 +55,16 @@ namespace App {
   class SDFPipeline {
   public:
     SDFPipeline(SDL_GPUTextureFormat targetFormat, SDL_GPUDevice *gpu);
-    SDL_GPUDevice *device;
-    SDL_GPUGraphicsPipeline *pipeline = NULL;
-    SDL_GPUBuffer *objsBuffer = NULL;
     void refreshObjects(std::vector<SDFObject> objs);
     void render(
       SDL_GPUCommandBuffer *cmdBuf, SDL_GPURenderPass *pass,
       SDL_GPUTexture* target, SDFSysData sys
     );
     void destroy();
+  private:
+    SDL_GPUDevice *device;
+    SDL_GPUGraphicsPipeline *pipeline = NULL;
+    SDL_GPUBuffer *objsBuffer = NULL;
   };
   // sdf math
   float sdfToCir(Vec2 point, Vec2 center, float radius);
