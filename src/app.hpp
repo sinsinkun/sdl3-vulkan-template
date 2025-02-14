@@ -4,6 +4,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include <SDL3_image/SDL_image.h>
+#include <glm/vec2.hpp>
 
 #include "util.hpp"
 #include "sdfPipeline.hpp"
@@ -17,11 +18,12 @@ namespace App {
     TTF_TextEngine *textEngine = NULL;
     TTF_Font *font = NULL;
     TextPipeline *overlayp = NULL;
-    Vec2 mousePosScreenSpace = Vec2(0.0f);
-    Vec2 winSize = Vec2(800.0f, 600.0f);
+    std::vector<StringObject> overlayStrs;
+    glm::vec2 mousePosScreenSpace = glm::vec2(0.0f);
+    glm::vec2 winSize = glm::vec2(800.0f, 600.0f);
     // SDF render
     Uint64 sdfTime = 0;
-    Vec2 sdfLightPos = Vec2(0.0f);
+    glm::vec2 sdfLightPos = glm::vec2(0.0f);
     std::vector<SDFObject> sdfObjects;
     SDFPipeline *sdfp = NULL;
     SDFPipeline *sdfpDebug = NULL;

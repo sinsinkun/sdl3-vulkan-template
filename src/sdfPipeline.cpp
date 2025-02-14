@@ -2,7 +2,7 @@
 
 using namespace App;
 
-SDFObject SDFObject::circle(Vec2 center, float radius) {
+SDFObject SDFObject::circle(glm::vec2 center, float radius) {
 	SDFObject obj;
 	obj.type = SDF_Circle;
 	obj.center = center;
@@ -10,7 +10,7 @@ SDFObject SDFObject::circle(Vec2 center, float radius) {
 	return obj;
 }
 
-SDFObject SDFObject::line(Vec2 p1, Vec2 p2, float thickness) {
+SDFObject SDFObject::line(glm::vec2 p1, glm::vec2 p2, float thickness) {
 	SDFObject obj;
 	obj.type = SDF_Line;
 	obj.center = p1;
@@ -19,7 +19,7 @@ SDFObject SDFObject::line(Vec2 p1, Vec2 p2, float thickness) {
 	return obj;
 }
 
-SDFObject SDFObject::triangle(Vec2 p1, Vec2 p2, Vec2 p3) {
+SDFObject SDFObject::triangle(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3) {
 	SDFObject obj;
 	obj.type = SDF_Triangle;
 	obj.center = p1;
@@ -28,7 +28,7 @@ SDFObject SDFObject::triangle(Vec2 p1, Vec2 p2, Vec2 p3) {
 	return obj;
 }
 
-SDFObject SDFObject::rect(Vec2 center, Vec2 size) {
+SDFObject SDFObject::rect(glm::vec2 center, glm::vec2 size) {
 	SDFObject obj;
 	obj.type = SDF_Rect;
 	obj.center = center;
@@ -36,7 +36,7 @@ SDFObject SDFObject::rect(Vec2 center, Vec2 size) {
 	return obj;
 }
 
-SDFObject SDFObject::rect(Vec2 center, Vec2 size, float rotateDeg) {
+SDFObject SDFObject::rect(glm::vec2 center, glm::vec2 size, float rotateDeg) {
 	SDFObject obj;
 	obj.type = SDF_RectA;
 	obj.center = center;
@@ -57,7 +57,7 @@ void SDFObject::asOutline(float thickness) {
 	this->thickness = thickness;
 }
 
-void SDFObject::updatePositionDelta(Vec2 delta) {
+void SDFObject::updatePositionDelta(glm::vec2 delta) {
 	if (type == SDF_Line || type == SDF_Triangle) {
 		v2 = v2 + delta;
 		v3 = v3 + delta;
@@ -65,8 +65,8 @@ void SDFObject::updatePositionDelta(Vec2 delta) {
 	center = center + delta;
 }
 
-void SDFObject::updatePosition(Vec2 newCenter) {
-	Vec2 delta = newCenter - center;
+void SDFObject::updatePosition(glm::vec2 newCenter) {
+	glm::vec2 delta = newCenter - center;
 	updatePositionDelta(delta);
 }
 
@@ -208,31 +208,31 @@ void SDFPipeline::destroy() {
 
 #pragma region SDF math
 
-float App::sdfToCir(Vec2 point, Vec2 center, float radius) {
-	Vec2 v = center - point;
-  return v.magnitude() - radius;
+float App::sdfToCir(glm::vec2 point, glm::vec2 center, float radius) {
+	glm::vec2 v = center - point;
+  return glm::length(v) - radius;
 };
 
-float App::sdfToLine(Vec2 point, Vec2 p1, Vec2 p2) {
-	Vec2 pa = point - p1;
-	Vec2 ba = p2 - p1;
-	float h = SDL_clamp(dot(pa, ba) / dot(ba, ba), 0.0f, 1.0f);
-	return (pa - ba * h).magnitude();
+float App::sdfToLine(glm::vec2 point, glm::vec2 p1, glm::vec2 p2) {
+	glm::vec2 pa = point - p1;
+	glm::vec2 ba = p2 - p1;
+	float h = SDL_clamp(glm::dot(pa, ba) / glm::dot(ba, ba), 0.0f, 1.0f);
+	return glm::length(pa - ba * h);
 }
 
-float App::sdfToTriangle(Vec2 point, Vec2 p0, Vec2 p1, Vec2 p2) {
-	Vec2 e0 = p1 - p0;
-	Vec2 v0 = point - p0;
-	Vec2 d0 = v0 - e0 * SDL_clamp(dot(v0, e0) / dot(e0, e0), 0.0f, 1.0f);
-	float d0d = dot(d0, d0);
-	Vec2 e1 = p2 - p1;
-	Vec2 v1 = point - p1;
-	Vec2 d1 = v1 - e1 * SDL_clamp(dot(v1, e1) / dot(e1, e1), 0.0f, 1.0f);
-	float d1d = dot(d1, d1);
-	Vec2 e2 = p0 - p2;
-	Vec2 v2 = point - p2;
-	Vec2 d2 = v2 - e2 * SDL_clamp(dot(v2, e2) / dot(e2, e2), 0.0f, 1.0f);
-	float d2d = dot(d2, d2);
+float App::sdfToTriangle(glm::vec2 point, glm::vec2 p0, glm::vec2 p1, glm::vec2 p2) {
+	glm::vec2 e0 = p1 - p0;
+	glm::vec2 v0 = point - p0;
+	glm::vec2 d0 = v0 - e0 * SDL_clamp(dot(v0, e0) / dot(e0, e0), 0.0f, 1.0f);
+	float d0d = glm::dot(d0, d0);
+	glm::vec2 e1 = p2 - p1;
+	glm::vec2 v1 = point - p1;
+	glm::vec2 d1 = v1 - e1 * SDL_clamp(dot(v1, e1) / dot(e1, e1), 0.0f, 1.0f);
+	float d1d = glm::dot(d1, d1);
+	glm::vec2 e2 = p0 - p2;
+	glm::vec2 v2 = point - p2;
+	glm::vec2 d2 = v2 - e2 * SDL_clamp(dot(v2, e2) / dot(e2, e2), 0.0f, 1.0f);
+	float d2d = glm::dot(d2, d2);
 
 	float o = e0.x * e2.y - e0.y * e2.x;
 	float y0 = o * (v0.x * e0.y - v0.y * e0.x);
@@ -251,15 +251,15 @@ float App::sdfToTriangle(Vec2 point, Vec2 p0, Vec2 p1, Vec2 p2) {
 
 // vec2 d = abs(p - c) - s;
 // return length(max(d, vec2(0.0))) + min(max(d.x, d.y), 0.0);
-float App::sdfToRect(Vec2 point, Vec2 center, Vec2 size) {
-	Vec2 absP = point - center;
+float App::sdfToRect(glm::vec2 point, glm::vec2 center, glm::vec2 size) {
+	glm::vec2 absP = point - center;
 	if (absP.x < 0.0f) absP.x = -1.0f * absP.x;
 	if (absP.y < 0.0f) absP.y = -1.0f * absP.y;
-	Vec2 d0 = absP - size;
-	Vec2 d = d0;
+	glm::vec2 d0 = absP - size;
+	glm::vec2 d = d0;
 	if (d.x < 0.0f) d.x = 0.0f;
 	if (d.y < 0.0f) d.y = 0.0f;
-	float outer = d.magnitude();
+	float outer = glm::length(d);
 	float inner = SDL_min(SDL_max(d0.x, d0.y), 0.0f);
 	return outer + inner;
 }
@@ -272,7 +272,7 @@ float App::sdfAsOutline(float sdf, float thickness) {
 	return SDL_fabsf(sdf) - thickness;
 }
 
-float App::calculateSdf(Vec2 point, float maxDist, std::vector<SDFObject> *objs) {
+float App::calculateSdf(glm::vec2 point, float maxDist, std::vector<SDFObject> *objs) {
 	float sdf = maxDist;
 	for (int i=0; i < objs->size(); i++) {
 		SDFRenderObject obj = objs->at(i).renderObject();
@@ -300,7 +300,7 @@ float App::calculateSdf(Vec2 point, float maxDist, std::vector<SDFObject> *objs)
 	return sdf;
 }
 
-float App::calculateRayMarch(Vec2 point, Vec2 direction, float maxDist, std::vector<SDFObject> *objs) {
+float App::calculateRayMarch(glm::vec2 point, glm::vec2 direction, float maxDist, std::vector<SDFObject> *objs) {
 	// todo
 	return 0.0f;
 }

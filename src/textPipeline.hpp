@@ -4,6 +4,8 @@
 #include <vector>
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
 #include "util.hpp"
 
 // generic render pipeline
@@ -15,7 +17,7 @@ namespace App {
     TTF_Text *ttfText = NULL;
     TTF_GPUAtlasDrawSequence *sequence = NULL;
     SDL_FColor color = WHITE;
-    Vec3 origin {0.0f, 0.0f, 0.0f};
+    glm::vec3 origin {0.0f, 0.0f, 0.0f};
     bool visible = true;
     void updateText(std::string text);
   };
@@ -24,10 +26,10 @@ namespace App {
     static const int MAX_VERT_COUNT = 2000;
     static const int MAX_INDEX_COUNT = 4000;
     TextPipeline(SDL_GPUTextureFormat targetFormat, SDL_GPUDevice *gpu);
-    std::vector<StringObject> strings;
     void render(
       SDL_GPUCommandBuffer *cmdBuf, SDL_GPURenderPass *pass,
-      SDL_GPUTexture* target, Vec2 targetSize
+      SDL_GPUTexture* target, glm::vec2 targetSize,
+      std::vector<StringObject> strings
     );
     void destroy();
   private:

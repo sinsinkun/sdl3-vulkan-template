@@ -1,6 +1,7 @@
 #define SDL_MAIN_USE_CALLBACKS
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+#include <glm/ext.hpp>
 
 #include "src/app.hpp"
 
@@ -82,18 +83,18 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   StringObject str1 = StringObject(state.textEngine, state.font, "FPS: 9999.00");
   StringObject str2 = StringObject(state.textEngine, state.font, "Debug: ");
   str2.color = ORANGE;
-  str2.origin = Vec3{0.0f, 580.0f, 0.0f};
-  state.overlayp->strings.push_back(str1);
-  state.overlayp->strings.push_back(str2);
+  str2.origin = glm::vec3{0.0f, 580.0f, 0.0f};
+  state.overlayStrs.push_back(str1);
+  state.overlayStrs.push_back(str2);
 
-  SDFObject cir1 = SDFObject::circle(Vec2 { 500.0f, 450.0f }, 38.0f);
+  SDFObject cir1 = SDFObject::circle(glm::vec2{ 500.0f, 450.0f }, 38.0f);
   cir1.withColor(RED);
-  SDFObject cir2 = SDFObject::circle(Vec2 { 300.0f, 200.0f }, 50.0f);
+  SDFObject cir2 = SDFObject::circle(glm::vec2{ 300.0f, 200.0f }, 50.0f);
   cir2.withColor(PURPLE);
-  SDFObject rect1 = SDFObject::rect(Vec2 { 400.0f, 200.0f }, Vec2 { 50.0f, 60.0f });
+  SDFObject rect1 = SDFObject::rect(glm::vec2{ 400.0f, 200.0f }, glm::vec2{ 50.0f, 60.0f });
   rect1.withColor(modAlpha(GREEN, 0.8f));
   rect1.withRoundCorner(10.0f);
-  SDFObject tri1 = SDFObject::triangle(Vec2 { 100.0f, 400.0f}, Vec2 { 220.0f, 330.0f }, Vec2 { 180.0f, 500.0f });
+  SDFObject tri1 = SDFObject::triangle(glm::vec2{ 100.0f, 400.0f}, glm::vec2{ 220.0f, 330.0f }, glm::vec2{ 180.0f, 500.0f });
   tri1.withColor(GRAY);
   tri1.withRoundCorner(5.0f);
   state.sdfObjects.push_back(cir1);
@@ -121,7 +122,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
         return SDL_APP_SUCCESS;
       }
       if (event->key.scancode == SDL_SCANCODE_F1) {
-        state.overlayp->strings[0].visible = true;
+        state.overlayStrs[0].visible = true;
       }
       if (event->key.scancode == SDL_SCANCODE_SPACE) {
         state.sdfPosUpdate = !state.sdfPosUpdate;
@@ -129,11 +130,11 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
       break;
     case SDL_EVENT_KEY_UP:
       if (event->key.scancode == SDL_SCANCODE_F1) {
-        state.overlayp->strings[0].visible = false;
+        state.overlayStrs[0].visible = false;
       }
       break;
     case SDL_EVENT_MOUSE_MOTION:
-      state.mousePosScreenSpace = Vec2(event->motion.x, event->motion.y);
+      state.mousePosScreenSpace = glm::vec2(event->motion.x, event->motion.y);
       break;
     case SDL_EVENT_TEXT_INPUT:
       break;
@@ -144,11 +145,11 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 }
 
 float rayMarchDebug(
-  std::vector<SDFObject> *cirs, Vec2 point, Vec2 target, 
+  std::vector<SDFObject> *cirs, glm::vec2 point, glm::vec2 target, 
   float maxDist, std::vector<SDFObject> *objs
 ) {
-  Vec2 dir = (target - point).normalize();
-  Vec2 p = point;
+  glm::vec2 dir = glm::normalize(target - point);
+  glm::vec2 p = point;
   float sdf = calculateSdf(p, maxDist, objs);
   float rayDist = sdf;
   // note: pipeline has a max obj count of 1000
@@ -179,10 +180,10 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     float fps = 0.0f;
     if (delta != 0) fps = SDL_NS_PER_SECOND / delta;
     // SDL_Log("FPS: %.2f", fps);
-    if (state.overlayp->strings.size() > 0) {
+    if (state.overlayStrs.size() > 0) {
       char str[100];
       SDL_snprintf(str, sizeof(str), "FPS: %.2f", fps);
-      state.overlayp->strings[0].updateText(str);
+      state.overlayStrs[0].updateText(str);
     }
   } else {
     state.timeSinceLastFps += delta;
@@ -195,12 +196,12 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     // SDFObject* obj0 = &state.sdfObjects.at(0);
     // obj0->updatePosition(state.mousePosScreenSpace);
     SDFObject* obj1 = &state.sdfObjects.at(1);
-    obj1->updatePosition(Vec2(
+    obj1->updatePosition(glm::vec2(
       300.0f + 100.0f * SDL_sin(0.001f * (state.sdfTime / SDL_NS_PER_MS)),
       300.0f + 100.0f * SDL_cos(0.001f * (state.sdfTime / SDL_NS_PER_MS))
     ));
     SDFObject* obj3 = &state.sdfObjects.at(3);
-    obj3->updatePosition(Vec2(
+    obj3->updatePosition(glm::vec2(
       100.0f,
       400.0f + 100.0f * SDL_sin(0.001f * (state.sdfTime / SDL_NS_PER_MS))
     ));
@@ -215,7 +216,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   debugCirs.push_back(sdfCir);
   SDFObject lineToLight = SDFObject::line(state.mousePosScreenSpace, state.sdfLightPos, 1.0f);
   debugCirs.push_back(lineToLight);
-  float distFromLight = (state.sdfLightPos - state.mousePosScreenSpace).magnitude();
+  float distFromLight = glm::length(state.sdfLightPos - state.mousePosScreenSpace);
   float rm = rayMarchDebug(
     &debugCirs, state.mousePosScreenSpace, state.sdfLightPos, distFromLight, &state.sdfObjects
   );
@@ -223,7 +224,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   // update debug text
   char str[400];
   SDL_snprintf(str, sizeof(str), "Debug | SDF: %.2f, D: %.2f, RM: %.2f", sdf, distFromLight, rm);
-  state.overlayp->strings[1].updateText(str);
+  state.overlayStrs[1].updateText(str);
 
   // acquire command buffer
 	SDL_GPUCommandBuffer *cmdBuf = SDL_AcquireGPUCommandBuffer(state.gpu);
@@ -262,13 +263,13 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     cmdBuf, pass, swapchain,
     SDFSysData {
       .screenSize = state.winSize,
-      .lightPos = Vec2(0.0f),
+      .lightPos = glm::vec2(0.0f),
       .lightColor = BLACK,
       .lightDist = 0.0f,
       .objCount = (Uint32)debugCirs.size()
     }
   );
-  state.overlayp->render(cmdBuf, pass, swapchain, state.winSize);
+  state.overlayp->render(cmdBuf, pass, swapchain, state.winSize, state.overlayStrs);
 
   // finish render pass
 	SDL_EndGPURenderPass(pass);

@@ -80,7 +80,7 @@ void addGlyphToVertices(
 	std::vector<RenderVertex> *vertices,
 	std::vector<Uint16> *indices,
 	SDL_FColor color,
-	Vec3 origin
+	glm::vec3 origin
 ) {
   for (int i=0; i < sequence->num_vertices; i++) {
 		RenderVertex vert;
@@ -98,7 +98,8 @@ void addGlyphToVertices(
 
 void TextPipeline::render(
   SDL_GPUCommandBuffer *cmdBuf, SDL_GPURenderPass *pass,
-  SDL_GPUTexture* target, Vec2 targetSize
+  SDL_GPUTexture* target, glm::vec2 targetSize,
+	std::vector<StringObject> strings
 ) {
 	if (strings.empty()) { return; }
 	std::vector<RenderVertex> vertices;
@@ -131,7 +132,7 @@ void TextPipeline::render(
 		.buffer = indexBuf,
 		.offset = 0,
 	}, SDL_GPU_INDEXELEMENTSIZE_16BIT);
-	SDL_PushGPUVertexUniformData(cmdBuf, 0, &targetSize, sizeof(Vec2));
+	SDL_PushGPUVertexUniformData(cmdBuf, 0, &targetSize, sizeof(glm::vec2));
 	int index_offset = 0, vertex_offset = 0;
 	// dynamically offset buffers for each glyph
 	for (int i=0; i<strings.size(); i++) {
@@ -145,10 +146,6 @@ void TextPipeline::render(
 }
 
 void TextPipeline::destroy() {
-	for (int i=0; i<strings.size(); i++) {
-		TTF_DestroyText(strings[i].ttfText);
-	}
-	strings.clear();
   SDL_ReleaseGPUBuffer(device, vertBuf);
   SDL_ReleaseGPUBuffer(device, indexBuf);
   SDL_ReleaseGPUSampler(device, sampler);
