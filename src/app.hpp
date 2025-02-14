@@ -15,12 +15,13 @@ namespace App {
     SDL_Window *window = NULL;
     SDL_GPUDevice *gpu = NULL;
     SDL_Surface *winIcon = NULL;
+    glm::vec2 mousePosScreenSpace = glm::vec2(0.0f);
+    glm::vec2 winSize = glm::vec2(800.0f, 600.0f);
+    // text engine
     TTF_TextEngine *textEngine = NULL;
     TTF_Font *font = NULL;
     TextPipeline *overlayp = NULL;
     std::vector<StringObject> overlayStrs;
-    glm::vec2 mousePosScreenSpace = glm::vec2(0.0f);
-    glm::vec2 winSize = glm::vec2(800.0f, 600.0f);
     // SDF render
     Uint64 sdfTime = 0;
     glm::vec2 sdfLightPos = glm::vec2(0.0f);

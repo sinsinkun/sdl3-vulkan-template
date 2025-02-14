@@ -24,6 +24,12 @@ int main(int argc, char *argv[]) {
 Compiled using g++ from the default msys2 location:
 - C:/msys64/ucrt64/bin/g++.exe
 
+glm package is installed through msys2
+```
+pacman -Ss glm
+pacman -S {pkg_name}
+```
+
 SDL3/SDL3_ttf/SDL3_image is assumed to be manually installed at C:/Programs/SDL3
 (msys2 packages prevents statically linking standard libraries)
 
