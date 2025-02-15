@@ -17,6 +17,9 @@ namespace App {
     SDL_Surface *winIcon = NULL;
     glm::vec2 mousePosScreenSpace = glm::vec2(0.0f);
     glm::vec2 winSize = glm::vec2(800.0f, 600.0f);
+    // FPS debug helpers
+    Uint64 lifetime = 0;
+    Uint64 timeSinceLastFps = 0;
     // text engine
     TTF_TextEngine *textEngine = NULL;
     TTF_Font *font = NULL;
@@ -29,8 +32,5 @@ namespace App {
     SDFPipeline *sdfp = NULL;
     SDFPipeline *sdfpDebug = NULL;
     bool sdfPosUpdate = true;
-    // FPS debug helpers
-    Uint64 lifetime = 0;
-    Uint64 timeSinceLastFps = 0;
   };
 }

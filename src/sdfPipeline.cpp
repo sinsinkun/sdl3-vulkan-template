@@ -249,8 +249,6 @@ float App::sdfToTriangle(glm::vec2 point, glm::vec2 p0, glm::vec2 p1, glm::vec2 
 	return SDL_sqrtf(minD) * sign;
 }
 
-// vec2 d = abs(p - c) - s;
-// return length(max(d, vec2(0.0))) + min(max(d.x, d.y), 0.0);
 float App::sdfToRect(glm::vec2 point, glm::vec2 center, glm::vec2 size) {
 	glm::vec2 absP = point - center;
 	if (absP.x < 0.0f) absP.x = -1.0f * absP.x;
@@ -300,9 +298,19 @@ float App::calculateSdf(glm::vec2 point, float maxDist, std::vector<SDFObject> *
 	return sdf;
 }
 
-float App::calculateRayMarch(glm::vec2 point, glm::vec2 direction, float maxDist, std::vector<SDFObject> *objs) {
-	// todo
-	return 0.0f;
+float App::calculateRayMarch(glm::vec2 point, glm::vec2 target, float maxDist, std::vector<SDFObject> *objs) {
+	glm::vec2 dir = glm::normalize(target - point);
+	glm::vec2 p = point;
+	float sdf = calculateSdf(p, maxDist, objs);
+  float rayDist = sdf;
+	for (int i=0; i < 1000; i++) {
+    p = p + dir * sdf;
+    sdf = calculateSdf(p, maxDist, objs);
+    rayDist += sdf;
+    if (rayDist > maxDist || sdf < 0.01f) break;
+  }
+  if (rayDist > maxDist) rayDist = maxDist;
+  return rayDist;
 }
 
 #pragma endregion SDF math
