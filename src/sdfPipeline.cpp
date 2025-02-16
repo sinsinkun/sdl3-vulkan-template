@@ -147,7 +147,7 @@ SDFPipeline::SDFPipeline(SDL_GPUTextureFormat targetFormat, SDL_GPUDevice *gpu) 
   SDL_ReleaseGPUShader(device, fragShader);
 }
 
-void SDFPipeline::refreshObjects(std::vector<SDFObject> objs) {
+void SDFPipeline::refreshObjects(std::vector<SDFObject> &objs) {
 	Uint32 objsSize = sizeof(SDFRenderObject) * objs.size();
 	// update object buffer with new data
 	SDL_GPUTransferBuffer *transferBuf = SDL_CreateGPUTransferBuffer(

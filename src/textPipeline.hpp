@@ -29,7 +29,7 @@ namespace App {
     void render(
       SDL_GPUCommandBuffer *cmdBuf, SDL_GPURenderPass *pass,
       SDL_GPUTexture* target, glm::vec2 targetSize,
-      std::vector<StringObject> strings
+      std::vector<StringObject> &strings
     );
     void destroy();
   private:

@@ -57,7 +57,7 @@ namespace App {
   class SDFPipeline {
   public:
     SDFPipeline(SDL_GPUTextureFormat targetFormat, SDL_GPUDevice *gpu);
-    void refreshObjects(std::vector<SDFObject> objs);
+    void refreshObjects(std::vector<SDFObject> &objs);
     void render(
       SDL_GPUCommandBuffer *cmdBuf, SDL_GPURenderPass *pass,
       SDL_GPUTexture* target, SDFSysData sys
