@@ -9,6 +9,7 @@
 #include "util.hpp"
 #include "sdfPipeline.hpp"
 #include "textPipeline.hpp"
+#include "objPipeline.hpp"
 
 namespace App {
   struct AppState {
@@ -25,6 +26,8 @@ namespace App {
     TTF_Font *font = NULL;
     TextPipeline *overlayp = NULL;
     std::vector<StringObject> overlayStrs;
+    // regular pipeline
+    ObjectPipeline *objp = NULL;
     // SDF render
     Uint64 sdfTime = 0;
     glm::vec2 sdfLightPos = glm::vec2(0.0f);

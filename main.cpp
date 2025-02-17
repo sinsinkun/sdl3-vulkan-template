@@ -79,6 +79,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   state.overlayp = new TextPipeline(scFormat, state.gpu);
   state.sdfp = new SDFPipeline(scFormat, state.gpu);
   state.sdfpDebug = new SDFPipeline(scFormat, state.gpu);
+  state.objp = new ObjectPipeline(scFormat, state.gpu);
 
   StringObject str1 = StringObject(state.textEngine, state.font, "FPS: 9999.00");
   StringObject str2 = StringObject(state.textEngine, state.font, "Debug: ");
@@ -101,6 +102,22 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   state.sdfObjects.push_back(cir2);
   state.sdfObjects.push_back(rect1);
   state.sdfObjects.push_back(tri1);
+
+  std::vector<RenderVertex> vertices;
+	// x, y, z, u, v, nx, ny, nz, r, g, b, a
+	vertices.push_back(RenderVertex{ -10.0f, 10.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f });
+	vertices.push_back(RenderVertex{  10.0f, 10.0f, 5.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f });
+	vertices.push_back(RenderVertex{  10.0f,-10.0f, 5.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f });
+	vertices.push_back(RenderVertex{ -10.0f,-10.0f, 5.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f });
+	std::vector<Uint16> indices = { 0, 1, 2, 0, 2, 3 };
+  state.objp->uploadObject(vertices, indices);
+  state.objp->updateObjectRot(0, glm::vec3(0.0f, 1.0f, 0.0f), 0.1f);
+  state.objp->updateCamera(RenderCamera {
+    .perspective = true,
+    .viewWidth = 800.0f,
+    .viewHeight = 600.0f,
+    .fovY = 60.0f,
+  });
 
   return SDL_APP_CONTINUE;
 }
@@ -247,6 +264,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
   // update render objects in sync with render
   state.sdfp->refreshObjects(state.sdfObjects);
+  state.sdfpDebug->refreshObjects(debugCirs);
   // start render pipelines
   state.sdfp->render(
     cmdBuf, pass, swapchain,
@@ -258,7 +276,6 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
       .objCount = (Uint32)state.sdfObjects.size()
     }
   );
-  state.sdfpDebug->refreshObjects(debugCirs);
   state.sdfpDebug->render(
     cmdBuf, pass, swapchain,
     SDFSysData {
@@ -269,6 +286,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
       .objCount = (Uint32)debugCirs.size()
     }
   );
+  state.objp->render(cmdBuf, pass, swapchain, state.winSize);
   state.overlayp->render(cmdBuf, pass, swapchain, state.winSize, state.overlayStrs);
 
   // finish render pass
@@ -289,6 +307,8 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result) {
     TTF_DestroyText(state.overlayStrs[i].ttfText);
   }
   state.overlayStrs.clear();
+  state.objp->destroy();
+  delete state.objp;
   state.sdfp->destroy();
   delete state.sdfp;
   state.sdfpDebug->destroy();

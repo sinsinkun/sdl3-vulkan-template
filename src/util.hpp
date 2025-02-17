@@ -2,6 +2,8 @@
 
 #include <vector>
 #include <SDL3/SDL.h>
+#include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
 
 namespace App {
   // GPU helpers
@@ -13,10 +15,29 @@ namespace App {
     float r, g, b, a;
   };
   struct RenderObject {
+    int id = -1;
+    bool visible = true;
     SDL_GPUBuffer *vertexBuffer = NULL;
     SDL_GPUBuffer *indexBuffer = NULL;
     int vertexCount = 0;
     int indexCount = 0;
+    SDL_GPUSampler *sampler = NULL;
+    SDL_GPUTexture *texture = NULL;
+    glm::vec3 pos = glm::vec3(0.0f);
+    glm::vec3 scale = glm::vec3(1.0f);
+    glm::vec3 rotAxis = glm::vec3(0.0f, 0.0f, 1.0f);
+    float rotAngleRad = 0.0f;
+  };
+  struct RenderCamera {
+    glm::vec3 pos = glm::vec3(0.0f);
+    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+    glm::vec3 lookAt = glm::vec3(0.0f, 0.0f, 1.0f);
+    bool perspective = false;
+    float near = 0.01f;
+    float far = 1000.0f;
+    float viewWidth = 0.0f;
+    float viewHeight = 0.0f;
+    float fovY = 60.0f;
   };
   SDL_GPUShader* loadShader(
     SDL_GPUDevice *device, const char* filename, Uint32 samplerCount,
