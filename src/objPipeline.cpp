@@ -40,9 +40,63 @@ ObjectPipeline::ObjectPipeline(SDL_GPUTextureFormat targetFormat, SDL_GPUDevice 
   SDL_ReleaseGPUShader(device, fragShader);
 }
 
-int ObjectPipeline::uploadObject(std::vector<RenderVertex> &verts) {
-	std::vector<Uint16> none;
-	return uploadObject(verts, none);
+int ObjectPipeline::uploadObject(std::vector<RenderVertex> &vertices) {
+	// create vertex buffer
+  Uint32 vSize = sizeof(RenderVertex) * vertices.size();
+  SDL_GPUBuffer *vBuffer = SDL_CreateGPUBuffer(device, new SDL_GPUBufferCreateInfo {
+    .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
+    .size = vSize
+  });
+  // pump vertex data into transfer buffer
+  SDL_GPUTransferBuffer *vertTransferBuf = SDL_CreateGPUTransferBuffer(
+    device,
+    new SDL_GPUTransferBufferCreateInfo {
+      .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
+      .size = vSize,
+    }
+  );
+  RenderVertex* vertData = static_cast<RenderVertex*>(SDL_MapGPUTransferBuffer(
+    device, vertTransferBuf, false
+  ));
+  for (int i=0; i < vertices.size(); i++) {
+    vertData[i] = vertices.at(i);
+  }
+  SDL_UnmapGPUTransferBuffer(device, vertTransferBuf);
+
+  // create cmd buffer + copy pass
+	SDL_GPUCommandBuffer *cmdBuf = SDL_AcquireGPUCommandBuffer(device);
+	SDL_GPUCopyPass *copyPass = SDL_BeginGPUCopyPass(cmdBuf);
+  // upload vertex buffer
+  SDL_UploadToGPUBuffer(
+    copyPass,
+    new SDL_GPUTransferBufferLocation {
+      .transfer_buffer = vertTransferBuf,
+      .offset = 0,
+    },
+    new SDL_GPUBufferRegion {
+      .buffer = vBuffer,
+      .offset = 0,
+      .size = vSize,
+    },
+    false
+  );
+  // clean up passes
+	SDL_EndGPUCopyPass(copyPass);
+	if (!SDL_SubmitGPUCommandBuffer(cmdBuf)) {
+    SDL_Log("Failed to upload to buffer - %s", SDL_GetError());
+  };
+  // release transfer buffers
+  SDL_ReleaseGPUTransferBuffer(device, vertTransferBuf);
+  // create object
+  int id = robjs.size();
+  robjs.push_back(RenderObject {
+    .id = id,
+    .visible = true,
+    .vertexBuffer = vBuffer,
+    .vertexCount = (int)(vertices.size()),
+    .indexCount = 0,
+  });
+  return id;
 }
 
 int ObjectPipeline::uploadObject(std::vector<RenderVertex> &vertices, std::vector<Uint16> &indices) {
@@ -52,14 +106,12 @@ int ObjectPipeline::uploadObject(std::vector<RenderVertex> &vertices, std::vecto
     .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
     .size = vSize
   });
-  SDL_SetGPUBufferName(device, vBuffer, "vert-buffer");
   // create index buffer
   Uint32 iSize = sizeof(Uint16) * indices.size();
   SDL_GPUBuffer *iBuffer = SDL_CreateGPUBuffer(device, new SDL_GPUBufferCreateInfo {
     .usage = SDL_GPU_BUFFERUSAGE_INDEX,
     .size = iSize
   });
-  SDL_SetGPUBufferName(device, iBuffer, "idx-buffer");
 
   // pump vertex data into transfer buffer
   SDL_GPUTransferBuffer *vertTransferBuf = SDL_CreateGPUTransferBuffer(
