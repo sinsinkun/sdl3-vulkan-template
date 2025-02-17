@@ -20,6 +20,23 @@ int main(int argc, char *argv[]) {
 }
 ```
 
+## Example pipelines
+- ObjectPipeline
+
+Standard generic object pipeline for 2D/3D objects.
+Objects are defined with vertices, and transformed with a standard MVP matrix.
+
+Anti-aliasing not included.
+
+- TextPipeline
+
+Renders text using the SDL3_TTF library. Draws quads on the target with the appropriate
+UV coordinates corresponding to a texture  atlas.
+
+- SDFPipeline
+
+Renders 2D shapes using SDFs instead of the standard object method.
+
 ## Installation
 Compiled using g++ from the default msys2 location:
 - C:/msys64/ucrt64/bin/g++.exe
