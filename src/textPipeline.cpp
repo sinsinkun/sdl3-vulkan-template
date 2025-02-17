@@ -23,7 +23,7 @@ TextPipeline::TextPipeline(SDL_GPUTextureFormat targetFormat, SDL_GPUDevice *gpu
   device = gpu;
   // create shaders
   SDL_GPUShader *vertShader = App::loadShader(device, "ttfRects.vert", 0, 1, 0, 0);
-  SDL_GPUShader *fragShader = App::loadShader(device, "ttfRects.frag", 1, 0, 0, 0);
+  SDL_GPUShader *fragShader = App::loadShader(device, "ttfRects.frag", 1, 1, 0, 0);
   // create pipeline
 	pipeline = SDL_CreateGPUGraphicsPipeline(device, new SDL_GPUGraphicsPipelineCreateInfo {
 		.vertex_shader = vertShader,
@@ -88,7 +88,6 @@ void addGlyphToVertices(
 		const SDL_FPoint uv = sequence->uv[i];
 		vert.x = origin.x + pos.x; vert.y = pos.y - origin.y; vert.z = origin.z;
 		vert.u = uv.x; vert.v = uv.y;
-		vert.r = color.r; vert.g = color.g; vert.b = color.b; vert.a = color.a;
 		vertices->push_back(vert);
 	}
 	for (int i=0; i < sequence->num_indices; i++) {
@@ -137,6 +136,7 @@ void TextPipeline::render(
 	// dynamically offset buffers for each glyph
 	for (int i=0; i<strings.size(); i++) {
 		if (!strings[i].visible) continue;
+		SDL_PushGPUFragmentUniformData(cmdBuf, 0, &strings[i].color, sizeof(SDL_FColor));
 		for (TTF_GPUAtlasDrawSequence *seq = strings[i].sequence; seq != NULL; seq = seq->next) {
 			SDL_DrawGPUIndexedPrimitives(pass, seq->num_indices, 1, index_offset, vertex_offset, 0);
 			index_offset += seq->num_indices;
