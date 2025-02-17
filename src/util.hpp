@@ -12,7 +12,6 @@ namespace App {
     float x, y, z;
     float u, v;
     float nx, ny, nz;
-    float r, g, b, a;
   };
   struct RenderObject {
     int id = -1;
