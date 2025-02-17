@@ -12,12 +12,15 @@ layout(set = 1, binding = 0) uniform UniformBufferObject {
 
 layout(location = 0) out vec2 outUv;
 layout(location = 1) out vec3 outNormal;
+layout(location = 2) out vec3 outPos;
 
 void main() {
   mat4x4 mvp = proj * view * model;
-  vec4 outPos = mvp * vec4(inPos, 1.0);
+  vec4 outP = model * vec4(inPos, 1.0);
   vec4 outN = model * vec4(inNormal, 0.0);
+  vec4 outFrag = mvp * vec4(inPos, 1.0);
   outUv = inUv;
   outNormal = outN.xyz;
-  gl_Position = outPos;
+  outPos = outP.xyz;
+  gl_Position = outFrag;
 }

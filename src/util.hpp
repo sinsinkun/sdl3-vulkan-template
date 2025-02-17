@@ -7,7 +7,7 @@
 
 namespace App {
   // GPU helpers
-  enum GPUPrimitiveType { Point, Line, Triangle };
+  enum GPUPrimitiveType { PT_Point, PT_Line, PT_Tri };
   struct RenderVertex {
     float x, y, z;
     float u, v;
@@ -26,6 +26,7 @@ namespace App {
     glm::vec3 scale = glm::vec3(1.0f);
     glm::vec3 rotAxis = glm::vec3(0.0f, 0.0f, 1.0f);
     float rotAngleRad = 0.0f;
+    SDL_FColor albedo {0.5f, 0.5f, 0.5f, 1.0f};
   };
   struct RenderCamera {
     glm::vec3 pos = glm::vec3(0.0f);

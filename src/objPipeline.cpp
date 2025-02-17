@@ -2,21 +2,35 @@
 
 using namespace App;
 
-ObjectPipeline::ObjectPipeline(SDL_GPUTextureFormat targetFormat, SDL_GPUDevice *gpu) {
+ObjectPipeline::ObjectPipeline(
+  SDL_GPUTextureFormat targetFormat, SDL_GPUDevice *gpu,
+  GPUPrimitiveType type, SDL_GPUCullMode cullMode
+) {
   device = gpu;
   // create shaders
   SDL_GPUShader *vertShader = App::loadShader(device, "obj.vert", 0, 1, 0, 0);
   SDL_GPUShader *fragShader = App::loadShader(device, "obj.frag", 1, 1, 0, 0);
+
+  // change render type
+  SDL_GPUPrimitiveType primType = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST;
+  SDL_GPUFillMode fillMode = SDL_GPU_FILLMODE_FILL;
+  if (type == PT_Point) {
+    primType = SDL_GPU_PRIMITIVETYPE_POINTLIST;
+  }
+  if (type == PT_Line) {
+    primType = SDL_GPU_PRIMITIVETYPE_LINELIST;
+    fillMode = SDL_GPU_FILLMODE_LINE;
+  }
 
   // create pipeline
 	pipeline = SDL_CreateGPUGraphicsPipeline(device, new SDL_GPUGraphicsPipelineCreateInfo {
 		.vertex_shader = vertShader,
 		.fragment_shader = fragShader,
     .vertex_input_state = createVertexInputState(),
-		.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+		.primitive_type = primType,
 		.rasterizer_state = SDL_GPURasterizerState {
-			.fill_mode = SDL_GPU_FILLMODE_FILL,
-			.cull_mode = SDL_GPU_CULLMODE_NONE,
+			.fill_mode = fillMode,
+			.cull_mode = cullMode,
 		},
 		.target_info = SDL_GPUGraphicsPipelineTargetInfo {
 			.color_target_descriptions = new SDL_GPUColorTargetDescription {
@@ -266,29 +280,8 @@ void ObjectPipeline::addTextureToObject(int id, SDL_GPUTextureFormat txFormat, U
   });
 }
 
-void ObjectPipeline::updateObjectPos(int id, glm::vec3 pos) {
-  if (id >= robjs.size()) {
-    SDL_Log("ERR: Tried to access render object that doesn't exist %d", id);
-    return;
-  }
-  robjs.at(id).pos = pos;
-}
-
-void ObjectPipeline::updateObjectRot(int id, glm::vec3 rotAxis, float rotAngle) {
-  if (id >= robjs.size()) {
-    SDL_Log("ERR: Tried to access render object that doesn't exist %d", id);
-    return;
-  }
-  robjs.at(id).rotAxis = rotAxis;
-  robjs.at(id).rotAngleRad = rotAngle;
-}
-
-void ObjectPipeline::updateObjectScale(int id, glm::vec3 scale) {
-  if (id >= robjs.size()) {
-    SDL_Log("ERR: Tried to access render object that doesn't exist %d", id);
-    return;
-  }
-  robjs.at(id).scale = scale;
+RenderObject& ObjectPipeline::getObject(int id) {
+  return robjs.at(id);
 }
 
 void ObjectPipeline::updateCamera(RenderCamera cam) {
@@ -345,6 +338,8 @@ void ObjectPipeline::render(
       .texture = obj.texture,
       .sampler = obj.sampler
     }, 1);
+    // upload material
+    SDL_PushGPUFragmentUniformData(cmdBuf, 0, &obj.albedo, sizeof(SDL_FColor));
     // draw
     if (obj.indexCount > 0) {
       SDL_BindGPUIndexBuffer(pass, new SDL_GPUBufferBinding {
@@ -358,7 +353,7 @@ void ObjectPipeline::render(
   }
 }
 
-void ObjectPipeline::destroy() {
+void ObjectPipeline::clearObjects() {
   for (int i=0; i<robjs.size(); i++) {
     if (robjs[i].vertexBuffer != NULL) SDL_ReleaseGPUBuffer(device, robjs[i].vertexBuffer);
     if (robjs[i].indexBuffer != NULL) SDL_ReleaseGPUBuffer(device, robjs[i].indexBuffer);
@@ -366,6 +361,10 @@ void ObjectPipeline::destroy() {
     if (robjs[i].sampler != NULL) SDL_ReleaseGPUSampler(device, robjs[i].sampler);
   }
   robjs.clear();
+}
+
+void ObjectPipeline::destroy() {
+  clearObjects();
   SDL_ReleaseGPUBuffer(device, debugVertBuffer);
   SDL_ReleaseGPUGraphicsPipeline(device, pipeline);
 }

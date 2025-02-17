@@ -79,7 +79,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   state.overlayp = new TextPipeline(scFormat, state.gpu);
   state.sdfp = new SDFPipeline(scFormat, state.gpu);
   state.sdfpDebug = new SDFPipeline(scFormat, state.gpu);
-  state.objp = new ObjectPipeline(scFormat, state.gpu);
+  state.objp = new ObjectPipeline(scFormat, state.gpu, PT_Tri, SDL_GPU_CULLMODE_NONE);
 
   StringObject str1 = StringObject(state.textEngine, state.font, "FPS: 9999.00");
   StringObject str2 = StringObject(state.textEngine, state.font, "Debug: ");
@@ -110,9 +110,12 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 	vertices.push_back(RenderVertex{  10.0f,-10.0f, 5.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f });
 	vertices.push_back(RenderVertex{ -10.0f,-10.0f, 5.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f });
 	std::vector<Uint16> indices = { 0, 1, 2, 0, 2, 3 };
-  state.objp->uploadObject(vertices, indices);
-  state.objp->updateObjectPos(0, glm::vec3(20.0f, 0.0f, 0.0f));
-  state.objp->updateObjectRot(0, glm::vec3(0.0f, 1.0f, 0.0f), 0.1f);
+  int obj1 = state.objp->uploadObject(vertices, indices);
+  RenderObject &obj = state.objp->getObject(obj1);
+  obj.albedo = modAlpha(CYAN, 0.5f);
+  obj.pos = glm::vec3(20.0f, 0.0f, 0.0f);
+  obj.rotAxis = glm::vec3(0.0f, 1.0f, 0.0f);
+  obj.rotAngleRad = 0.1f;
   state.objp->updateCamera(RenderCamera {
     .perspective = true,
     .viewWidth = 800.0f,

@@ -9,18 +9,20 @@
 namespace App {
   class ObjectPipeline {
   public:
-    ObjectPipeline(SDL_GPUTextureFormat targetFormat, SDL_GPUDevice *gpu);
+    ObjectPipeline(
+      SDL_GPUTextureFormat targetFormat, SDL_GPUDevice *gpu,
+      GPUPrimitiveType type, SDL_GPUCullMode cullMode
+    );
     int uploadObject(std::vector<RenderVertex> &vertices);
     int uploadObject(std::vector<RenderVertex> &vertices, std::vector<Uint16> &indices);
     void addTextureToObject(int id, SDL_GPUTextureFormat txFormat, Uint32 w, Uint32 h, bool isRenderTarget);
-    void updateObjectPos(int id, glm::vec3 pos);
-    void updateObjectRot(int id, glm::vec3 rotAxis, float rotAngle);
-    void updateObjectScale(int id, glm::vec3 scale);
+    RenderObject& getObject(int id);
     void updateCamera(RenderCamera cam);
     void render(
       SDL_GPUCommandBuffer *cmdBuf, SDL_GPURenderPass *pass,
       SDL_GPUTexture* target, glm::vec2 targetSize
     );
+    void clearObjects();
     void destroy();
   private:
     RenderCamera cam;
