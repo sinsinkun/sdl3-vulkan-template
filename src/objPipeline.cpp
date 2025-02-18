@@ -54,7 +54,7 @@ ObjectPipeline::ObjectPipeline(
   SDL_ReleaseGPUShader(device, fragShader);
 }
 
-int ObjectPipeline::uploadObject(std::vector<RenderVertex> &vertices) {
+int ObjectPipeline::uploadObject(std::vector<RenderVertex> const &vertices) {
 	// create vertex buffer
   Uint32 vSize = sizeof(RenderVertex) * vertices.size();
   SDL_GPUBuffer *vBuffer = SDL_CreateGPUBuffer(device, new SDL_GPUBufferCreateInfo {
@@ -135,7 +135,7 @@ int ObjectPipeline::uploadObject(std::vector<RenderVertex> &vertices) {
   return id;
 }
 
-int ObjectPipeline::uploadObject(std::vector<RenderVertex> &vertices, std::vector<Uint16> &indices) {
+int ObjectPipeline::uploadObject(std::vector<RenderVertex> const &vertices, std::vector<Uint16> const &indices) {
   // create vertex buffer
   Uint32 vSize = sizeof(RenderVertex) * vertices.size();
   SDL_GPUBuffer *vBuffer = SDL_CreateGPUBuffer(device, new SDL_GPUBufferCreateInfo {
@@ -258,6 +258,13 @@ int ObjectPipeline::uploadObject(std::vector<RenderVertex> &vertices, std::vecto
   return id;
 }
 
+int ObjectPipeline::uploadObject(Primitive const &shape) {
+  if (shape.useIndices) {
+    return uploadObject(shape.vertices, shape.indices);
+  }
+  return uploadObject(shape.vertices);
+}
+
 void ObjectPipeline::addTextureToObject(int id, SDL_GPUTextureFormat txFormat, Uint32 w, Uint32 h, bool isRenderTarget) {
   if (id >= robjs.size()) {
     SDL_Log("ERR: Tried to access render object that doesn't exist %d", id);
@@ -289,7 +296,7 @@ void ObjectPipeline::updateCamera(RenderCamera cam) {
 }
 
 glm::mat4x4 modelMatrix(RenderObject const &obj) {
-  glm::mat4x4 id = glm::mat4(1.0f);
+  glm::mat4x4 id = glm::mat4x4(1.0f);
   glm::mat4x4 model = glm::translate(id, obj.pos);
   model = glm::rotate(model, obj.rotAngleRad, obj.rotAxis);
   model = glm::scale(model, obj.scale);

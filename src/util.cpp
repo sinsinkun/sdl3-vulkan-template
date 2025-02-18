@@ -244,3 +244,113 @@ SDL_FColor App::modAlpha(SDL_FColor clr, float a) {
 }
 
 #pragma endregion Color utils
+
+#pragma region Primitives
+
+Primitive App::rect2d(float w, float h, float z) {
+	float hw = w / 2.0f;
+  float hh = h / 2.0f;
+	std::vector<RenderVertex> vertices;
+	vertices.push_back(RenderVertex{ {-hw, hw, z}, {0.0f, 0.0f}, {0.0f, 1.0f, 1.0f} });
+	vertices.push_back(RenderVertex{ { hw, hw, z}, {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f} });
+	vertices.push_back(RenderVertex{ { hw,-hw, z}, {1.0f, 1.0f}, {0.0f, 0.0f, 1.0f} });
+	vertices.push_back(RenderVertex{ {-hw,-hw, z}, {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f} });
+	std::vector<Uint16> indices = { 0, 1, 2, 0, 2, 3 };
+	return Primitive { vertices, indices, true };
+}
+
+Primitive App::regPolygon2d(float r, Uint16 sides, float z) {
+	std::vector<RenderVertex> vertices;
+	std::vector<Uint16> indices;
+	float da = 2.0f * SDL_PI_F / (float)sides;
+	float x0 = 1.0f; float y0 = 0.0f;
+	for (int i=0; i<sides; i++) {
+		float x1 = SDL_cosf(da) * x0 - SDL_sinf(da) * y0;
+		float y1 = SDL_cosf(da) * y0 + SDL_sinf(da) * x0;
+		// build slice
+		RenderVertex p1 = RenderVertex {
+			{x0 * r, y0 * r, z},
+			{(1.0f + x0)/2.0f, 1.0f - (1.0f + y0)/2.0f},
+			{0.0f, 0.0f, 1.0f}
+		};
+		RenderVertex p2 = RenderVertex {
+			{x1 * r, y1 * r, z},
+			{(1.0 + x1)/2.0, 1.0 - (1.0 + y1)/2.0},
+			{0.0f, 0.0f, 1.0f}
+		};
+		RenderVertex p3 = RenderVertex {
+			{0.0f, 0.0f, z}, {0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}
+		};
+		// prepare next slice
+		x0 = x1;
+		y0 = y1;
+		vertices.push_back(p1);
+		vertices.push_back(p2);
+		vertices.push_back(p3);
+	}
+	return Primitive { vertices, indices, false };
+}
+
+Primitive App::torus2d(float outerRadius, float innerRadius, Uint16 sides, float z) {
+	std::vector<RenderVertex> vertices;
+	std::vector<Uint16> indices;
+	float dr = innerRadius / outerRadius;
+	// build vertices
+	for (int i=0; i<sides; i++) {
+		float theta = 2.0f * SDL_PI_F * ((float)i / (float)sides);
+		float x = SDL_cosf(theta);
+		float y = SDL_sinf(theta);
+		RenderVertex v1 {
+			{x * outerRadius, y * outerRadius, z},
+			{(1.0f + x)/2.0f, (1.0f + y)/2.0f},
+			{0.0f, 0.0f, 1.0f}
+		};
+		RenderVertex v2 {
+			{x * innerRadius, y * innerRadius, z},
+			{(1.0f + dr * x) / 2.0f, (1.0f + dr * y) / 2.0f},
+			{0.0f, 0.0f, 1.0f}
+		};
+		vertices.push_back(v1);
+		vertices.push_back(v2);
+	}
+	// build indices
+	for (int i=0; i<vertices.size() - 2; i++) {
+		if (i % 2 == 0) {
+			indices.push_back(i + 1);
+			indices.push_back(i);
+			indices.push_back(i + 2);
+		} else {
+			indices.push_back(i);
+			indices.push_back(i + 1);
+			indices.push_back(i + 2);
+		}
+	}
+	// join back to first 2 vertices
+	indices.push_back(vertices.size() - 1);
+	indices.push_back(vertices.size() - 2);
+	indices.push_back(0);
+	indices.push_back(vertices.size() - 1);
+	indices.push_back(0);
+	indices.push_back(1);
+	return Primitive { vertices, indices, true };
+}
+
+Primitive App::sphere(float r, Uint16 sides, Uint16 slices) {
+	std::vector<RenderVertex> vertices;
+	std::vector<Uint16> indices;
+
+	// top point
+	RenderVertex v0 {{0.0f, r, 0.0f}, {0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}};
+	vertices.push_back(v0);
+
+	return Primitive { vertices, indices, true };
+}
+
+Primitive App::cube(float w, float h, float d) {
+	std::vector<RenderVertex> vertices;
+	std::vector<Uint16> indices;
+
+	return Primitive { vertices, indices, true };
+}
+
+#pragma endregion Primitives

@@ -103,18 +103,11 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   state.sdfObjects.push_back(rect1);
   state.sdfObjects.push_back(tri1);
 
-  // order: x, y, z, u, v, nx, ny, nz
-  std::vector<RenderVertex> vertices;
-	vertices.push_back(RenderVertex{ -10.0f, 10.0f, 5.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f });
-	vertices.push_back(RenderVertex{  10.0f, 10.0f, 5.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f });
-	vertices.push_back(RenderVertex{  10.0f,-10.0f, 5.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f });
-	vertices.push_back(RenderVertex{ -10.0f,-10.0f, 5.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f });
-	std::vector<Uint16> indices = { 0, 1, 2, 0, 2, 3 };
-  int obj1 = state.objp->uploadObject(vertices, indices);
+  int obj1 = state.objp->uploadObject(rect2d(20.0f, 10.0f, 5.0f));
   RenderObject &obj = state.objp->getObject(obj1);
   obj.albedo = modAlpha(CYAN, 0.5f);
   obj.pos = glm::vec3(20.0f, 0.0f, 0.0f);
-  obj.rotAxis = glm::vec3(0.0f, 1.0f, 0.0f);
+  obj.rotAxis = glm::vec3(1.0f, 0.0f, 0.0f);
   obj.rotAngleRad = 0.1f;
   state.objp->updateCamera(RenderCamera {
     .perspective = true,

@@ -86,8 +86,8 @@ void addGlyphToVertices(
 		RenderVertex vert;
 		const SDL_FPoint pos = sequence->xy[i];
 		const SDL_FPoint uv = sequence->uv[i];
-		vert.x = origin.x + pos.x; vert.y = pos.y - origin.y; vert.z = origin.z;
-		vert.u = uv.x; vert.v = uv.y;
+		vert.pos.x = origin.x + pos.x; vert.pos.y = pos.y - origin.y; vert.pos.z = origin.z;
+		vert.uv.x = uv.x; vert.uv.y = uv.y;
 		vertices->push_back(vert);
 	}
 	for (int i=0; i < sequence->num_indices; i++) {

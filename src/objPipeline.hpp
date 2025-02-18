@@ -13,8 +13,9 @@ namespace App {
       SDL_GPUTextureFormat targetFormat, SDL_GPUDevice *gpu,
       GPUPrimitiveType type, SDL_GPUCullMode cullMode
     );
-    int uploadObject(std::vector<RenderVertex> &vertices);
-    int uploadObject(std::vector<RenderVertex> &vertices, std::vector<Uint16> &indices);
+    int uploadObject(std::vector<RenderVertex> const &vertices);
+    int uploadObject(std::vector<RenderVertex> const &vertices, std::vector<Uint16> const &indices);
+    int uploadObject(Primitive const &shape);
     void addTextureToObject(int id, SDL_GPUTextureFormat txFormat, Uint32 w, Uint32 h, bool isRenderTarget);
     RenderObject& getObject(int id);
     void updateCamera(RenderCamera cam);

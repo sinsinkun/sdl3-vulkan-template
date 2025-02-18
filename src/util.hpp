@@ -9,9 +9,9 @@ namespace App {
   // GPU helpers
   enum GPUPrimitiveType { PT_Point, PT_Line, PT_Tri };
   struct RenderVertex {
-    float x, y, z;
-    float u, v;
-    float nx, ny, nz;
+    glm::vec3 pos;
+    glm::vec2 uv;
+    glm::vec3 normal;
   };
   struct RenderObject {
     int id = -1;
@@ -66,4 +66,16 @@ namespace App {
   static SDL_FColor MAGENTA{1.0f, 0.0f, 1.0f, 1.0f};
   static SDL_FColor ORANGE{1.0f, 0.5f, 0.0f, 1.0f};
   static SDL_FColor PURPLE{0.5f, 0.0f, 1.0f, 1.0f};
+  // primitives
+  struct Primitive {
+    std::vector<RenderVertex> vertices;
+    std::vector<Uint16> indices;
+    bool useIndices = true;
+  };
+  Primitive rect2d(float w, float h, float z);
+  Primitive regPolygon2d(float radius, Uint16 sides, float z);
+  Primitive torus2d(float outerRadius, float innerRadius, Uint16 sides, float z);
+  Primitive sphere(float r, Uint16 sides, Uint16 slices);
+  Primitive cube(float w, float h, float d);
+  Primitive cylinder(float r, float h, Uint16 sides);
 }
