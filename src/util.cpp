@@ -339,14 +339,17 @@ Primitive App::sphere(float r, Uint16 sides, Uint16 slices) {
 	std::vector<RenderVertex> vertices;
 	std::vector<Uint16> indices;
 
-	// top point
-	RenderVertex v0 {{0.0f, r, 0.0f}, {0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}};
-	vertices.push_back(v0);
-
 	return Primitive { vertices, indices, true };
 }
 
 Primitive App::cube(float w, float h, float d) {
+	std::vector<RenderVertex> vertices;
+	std::vector<Uint16> indices;
+
+	return Primitive { vertices, indices, true };
+}
+
+Primitive App::cylinder(float r, float h, Uint16 sides) {
 	std::vector<RenderVertex> vertices;
 	std::vector<Uint16> indices;
 

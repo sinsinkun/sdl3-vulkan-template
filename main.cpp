@@ -103,12 +103,12 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   state.sdfObjects.push_back(rect1);
   state.sdfObjects.push_back(tri1);
 
-  int obj1 = state.objp->uploadObject(rect2d(20.0f, 10.0f, 5.0f));
+  int obj1 = state.objp->uploadObject(torus2d(10.0f, 6.0f, 32, 5.0f));
   RenderObject &obj = state.objp->getObject(obj1);
   obj.albedo = modAlpha(CYAN, 0.5f);
-  obj.pos = glm::vec3(20.0f, 0.0f, 0.0f);
+  obj.pos = glm::vec3(5.0f, 0.0f, 0.0f);
   obj.rotAxis = glm::vec3(1.0f, 0.0f, 0.0f);
-  obj.rotAngleRad = 0.1f;
+  obj.rotAngleRad = 0.06f;
   state.objp->updateCamera(RenderCamera {
     .perspective = true,
     .viewWidth = 800.0f,
