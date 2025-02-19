@@ -103,7 +103,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   state.sdfObjects.push_back(rect1);
   state.sdfObjects.push_back(tri1);
 
-  int obj1 = state.objp->uploadObject(cylinder(10.0f, 15.0f, 32));
+  int obj1 = state.objp->uploadObject(sphere(10.0f, 24, 18));
   RenderObject &obj = state.objp->getObject(obj1);
   obj.albedo = modAlpha(CYAN, 0.8f);
   state.objp->updateCamera(RenderCamera {
