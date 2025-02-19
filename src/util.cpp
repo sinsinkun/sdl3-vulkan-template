@@ -245,6 +245,14 @@ SDL_FColor App::modAlpha(SDL_FColor clr, float a) {
 
 #pragma endregion Color utils
 
+float App::degToRad(float d) {
+	return d * SDL_PI_F / 180.0f;
+}
+
+float App::radToDeg(float r) {
+	return r * 180.0f / SDL_PI_F;
+}
+
 #pragma region Primitives
 
 Primitive App::rect2d(float w, float h, float z) {

@@ -37,7 +37,7 @@ namespace App {
     float far = 1000.0f;
     float viewWidth = 0.0f;
     float viewHeight = 0.0f;
-    float fovY = 60.0f;
+    float fovY = 1.05f;
   };
   SDL_GPUShader* loadShader(
     SDL_GPUDevice *device, const char* filename, Uint32 samplerCount,
@@ -66,6 +66,9 @@ namespace App {
   static SDL_FColor MAGENTA{1.0f, 0.0f, 1.0f, 1.0f};
   static SDL_FColor ORANGE{1.0f, 0.5f, 0.0f, 1.0f};
   static SDL_FColor PURPLE{0.5f, 0.0f, 1.0f, 1.0f};
+  // math
+  float degToRad(float d);
+  float radToDeg(float r);
   // primitives
   struct Primitive {
     std::vector<RenderVertex> vertices;

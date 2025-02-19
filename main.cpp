@@ -103,14 +103,14 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   state.sdfObjects.push_back(rect1);
   state.sdfObjects.push_back(tri1);
 
-  int obj1 = state.objp->uploadObject(cube(12.0f, 10.0f, 2.0f));
+  int obj1 = state.objp->uploadObject(cube(12.0f, 10.0f, 5.0f));
   RenderObject &obj = state.objp->getObject(obj1);
   obj.albedo = modAlpha(CYAN, 0.5f);
   state.objp->updateCamera(RenderCamera {
     .perspective = true,
     .viewWidth = 800.0f,
     .viewHeight = 600.0f,
-    .fovY = 60.0f,
+    .fovY = degToRad(60.0f),
   });
 
   return SDL_APP_CONTINUE;
@@ -242,7 +242,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   obj.pos = glm::vec3(
     (state.mousePosScreenSpace.x - state.winSize.x / 2.0f) / 10.0f,
     (state.mousePosScreenSpace.y - state.winSize.y / 2.0f) / 10.0f,
-    5.0f
+    40.0f
   );
 
   // acquire command buffer
