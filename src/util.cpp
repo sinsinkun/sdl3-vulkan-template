@@ -343,13 +343,6 @@ Primitive App::torus2d(float outerRadius, float innerRadius, Uint16 sides, float
 	return Primitive { vertices, indices, true };
 }
 
-Primitive App::sphere(float r, Uint16 sides, Uint16 slices) {
-	std::vector<RenderVertex> vertices;
-	std::vector<Uint16> indices;
-
-	return Primitive { vertices, indices, true };
-}
-
 Primitive App::cube(float w, float h, float d) {
 	std::vector<RenderVertex> vertices;
 	w = w / 2.0f; h = h / 2.0f; d = d / 2.0f;
@@ -396,6 +389,67 @@ Primitive App::cube(float w, float h, float d) {
 }
 
 Primitive App::cylinder(float r, float h, Uint16 sides) {
+	std::vector<RenderVertex> vertices;
+	std::vector<Uint16> indices;
+	h = h / 2.0f;
+	// center of top/bottom
+	vertices.push_back(RenderVertex{ {0.0f,-h, 0.0f}, {0.5f, 0.5f}, {0.0f,-1.0f, 0.0f} });
+	vertices.push_back(RenderVertex{ {0.0f, h, 0.0f}, {0.5f, 0.5f}, {0.0f, 1.0f, 0.0f} });
+	// build top/bottom faces
+	for (int i=0; i<sides; i++) {
+		float theta = 2.0f * SDL_PI_F * ((float)i / (float)sides);
+		float x = SDL_cosf(theta);
+		float z = SDL_sinf(theta);
+		vertices.push_back(RenderVertex{ {x * r,-h, z * r}, {(1.0f + x) / 2.0f, (1.0f + z) / 2.0f}, {0.0f,-1.0f, 0.0f} });
+		vertices.push_back(RenderVertex{ {x * r, h, z * r}, {(1.0f + x) / 2.0f, (1.0f + z) / 2.0f}, {0.0f, 1.0f, 0.0f} });
+	}
+	// build indices for top/bottom faces
+	for (int i=2; i < vertices.size() - 2; i++) {
+		if (i % 2 == 0) {
+			indices.push_back(i); indices.push_back(i + 2); indices.push_back(0);
+		} else {
+			indices.push_back(i); indices.push_back(1); indices.push_back(i + 2);
+		}
+	}
+	// final 2 tris for top/bottom faces
+	indices.push_back(vertices.size() - 2); indices.push_back(2); indices.push_back(0);
+	indices.push_back(vertices.size() - 1); indices.push_back(1); indices.push_back(3);
+	// build sides
+	float n0 = vertices.size();
+	for (int i=0; i < sides + 1; i++) {
+		float theta = 2.0f * SDL_PI_F * ((float)i / (float)sides);
+		float x = SDL_cosf(theta);
+		float z = SDL_sinf(theta);
+		vertices.push_back(RenderVertex{ {x * r,-h, z * r}, {(float)i / (float)sides, 0.0f}, {x,-1.0f, z} });
+		vertices.push_back(RenderVertex{ {x * r, h, z * r}, {(float)i / (float)sides, 1.0f}, {x, 1.0f, z} });
+	}
+	// build side indices
+	for (int i=n0; i < vertices.size() - 2; i++) {
+		if (i % 2 == 0) {
+			indices.push_back(i + 1); indices.push_back(i + 2); indices.push_back(i);
+		} else {
+			indices.push_back(i); indices.push_back(i + 2); indices.push_back(i + 1);
+		}
+	}
+
+	return Primitive { vertices, indices, true };
+}
+
+Primitive App::tube(float outerRadius, float innerRadius, float h, Uint16 sides) {
+	std::vector<RenderVertex> vertices;
+	std::vector<Uint16> indices;
+
+	return Primitive { vertices, indices, true };
+}
+
+Primitive App::sphere(float r, Uint16 sides, Uint16 slices) {
+	std::vector<RenderVertex> vertices;
+	std::vector<Uint16> indices;
+
+	return Primitive { vertices, indices, true };
+}
+
+Primitive hemisphere(float r, Uint16 sides, Uint16 slices) {
 	std::vector<RenderVertex> vertices;
 	std::vector<Uint16> indices;
 

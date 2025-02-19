@@ -79,7 +79,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   state.overlayp = new TextPipeline(scFormat, state.gpu);
   state.sdfp = new SDFPipeline(scFormat, state.gpu);
   state.sdfpDebug = new SDFPipeline(scFormat, state.gpu);
-  state.objp = new ObjectPipeline(scFormat, state.gpu, PT_Tri, SDL_GPU_CULLMODE_NONE);
+  state.objp = new ObjectPipeline(scFormat, state.gpu, PT_Tri, SDL_GPU_CULLMODE_BACK);
 
   StringObject str1 = StringObject(state.textEngine, state.font, "FPS: 9999.00");
   StringObject str2 = StringObject(state.textEngine, state.font, "Debug: ");
@@ -103,9 +103,9 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   state.sdfObjects.push_back(rect1);
   state.sdfObjects.push_back(tri1);
 
-  int obj1 = state.objp->uploadObject(cube(12.0f, 10.0f, 5.0f));
+  int obj1 = state.objp->uploadObject(cylinder(10.0f, 15.0f, 32));
   RenderObject &obj = state.objp->getObject(obj1);
-  obj.albedo = modAlpha(CYAN, 0.5f);
+  obj.albedo = modAlpha(CYAN, 0.8f);
   state.objp->updateCamera(RenderCamera {
     .perspective = true,
     .viewWidth = 800.0f,
@@ -242,7 +242,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   obj.pos = glm::vec3(
     (state.mousePosScreenSpace.x - state.winSize.x / 2.0f) / 10.0f,
     (state.mousePosScreenSpace.y - state.winSize.y / 2.0f) / 10.0f,
-    40.0f
+    60.0f
   );
 
   // acquire command buffer

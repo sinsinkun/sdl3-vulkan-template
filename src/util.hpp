@@ -78,7 +78,9 @@ namespace App {
   Primitive rect2d(float w, float h, float z);
   Primitive regPolygon2d(float radius, Uint16 sides, float z);
   Primitive torus2d(float outerRadius, float innerRadius, Uint16 sides, float z);
-  Primitive sphere(float r, Uint16 sides, Uint16 slices);
   Primitive cube(float w, float h, float d);
   Primitive cylinder(float r, float h, Uint16 sides);
+  Primitive tube(float outerRadius, float innerRadius, float h, Uint16 sides);
+  Primitive sphere(float r, Uint16 sides, Uint16 slices);
+  Primitive hemisphere(float r, Uint16 sides, Uint16 slices);
 }
