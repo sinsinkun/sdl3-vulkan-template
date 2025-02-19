@@ -248,13 +248,13 @@ SDL_FColor App::modAlpha(SDL_FColor clr, float a) {
 #pragma region Primitives
 
 Primitive App::rect2d(float w, float h, float z) {
-	float hw = w / 2.0f;
-  float hh = h / 2.0f;
+	w = w / 2.0f;
+  h = h / 2.0f;
 	std::vector<RenderVertex> vertices;
-	vertices.push_back(RenderVertex{ {-hw, hw, z}, {0.0f, 0.0f}, {0.0f, 1.0f, 1.0f} });
-	vertices.push_back(RenderVertex{ { hw, hw, z}, {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f} });
-	vertices.push_back(RenderVertex{ { hw,-hw, z}, {1.0f, 1.0f}, {0.0f, 0.0f, 1.0f} });
-	vertices.push_back(RenderVertex{ {-hw,-hw, z}, {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f} });
+	vertices.push_back(RenderVertex{ {-w, h, z}, {0.0f, 0.0f}, {0.0f, 1.0f, 1.0f} });
+	vertices.push_back(RenderVertex{ { w, h, z}, {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f} });
+	vertices.push_back(RenderVertex{ { w,-h, z}, {1.0f, 1.0f}, {0.0f, 0.0f, 1.0f} });
+	vertices.push_back(RenderVertex{ {-w,-h, z}, {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f} });
 	std::vector<Uint16> indices = { 0, 1, 2, 0, 2, 3 };
 	return Primitive { vertices, indices, true };
 }
@@ -344,8 +344,46 @@ Primitive App::sphere(float r, Uint16 sides, Uint16 slices) {
 
 Primitive App::cube(float w, float h, float d) {
 	std::vector<RenderVertex> vertices;
-	std::vector<Uint16> indices;
-
+	w = w / 2.0f; h = h / 2.0f; d = d / 2.0f;
+	// front
+	vertices.push_back(RenderVertex{ {-w,-h,-d}, {0.0f, 0.0f}, {0.0f, 0.0f,-1.0f} });
+	vertices.push_back(RenderVertex{ {-w, h,-d}, {1.0f, 0.0f}, {0.0f, 0.0f,-1.0f} });
+	vertices.push_back(RenderVertex{ { w, h,-d}, {1.0f, 1.0f}, {0.0f, 0.0f,-1.0f} });
+	vertices.push_back(RenderVertex{ { w,-h,-d}, {0.0f, 1.0f}, {0.0f, 0.0f,-1.0f} });
+	// back
+	vertices.push_back(RenderVertex{ {-w,-h, d}, {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f} });
+	vertices.push_back(RenderVertex{ {-w, h, d}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f} });
+	vertices.push_back(RenderVertex{ { w, h, d}, {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f} });
+	vertices.push_back(RenderVertex{ { w,-h, d}, {1.0f, 1.0f}, {0.0f, 0.0f, 1.0f} });
+	// top
+	vertices.push_back(RenderVertex{ {-w,-h,-d}, {0.0f, 1.0f}, {0.0f,-1.0f, 0.0f} });
+	vertices.push_back(RenderVertex{ { w,-h,-d}, {1.0f, 1.0f}, {0.0f,-1.0f, 0.0f} });
+	vertices.push_back(RenderVertex{ {-w,-h, d}, {0.0f, 0.0f}, {0.0f,-1.0f, 0.0f} });
+	vertices.push_back(RenderVertex{ { w,-h, d}, {1.0f, 0.0f}, {0.0f,-1.0f, 0.0f} });
+	// bottom
+	vertices.push_back(RenderVertex{ {-w, h,-d}, {0.0f, 0.0f}, {0.0f, 1.0f, 0.0f} });
+	vertices.push_back(RenderVertex{ { w, h,-d}, {0.0f, 1.0f}, {0.0f, 1.0f, 0.0f} });
+	vertices.push_back(RenderVertex{ {-w, h, d}, {1.0f, 0.0f}, {0.0f, 1.0f, 0.0f} });
+	vertices.push_back(RenderVertex{ { w, h, d}, {1.0f, 1.0f}, {0.0f, 1.0f, 0.0f} });
+	// left
+	vertices.push_back(RenderVertex{ {-w,-h,-d}, {1.0f, 0.0f}, {-1.0f, 0.0f, 0.0f} });
+	vertices.push_back(RenderVertex{ {-w, h,-d}, {1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f} });
+	vertices.push_back(RenderVertex{ {-w,-h, d}, {0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f} });
+	vertices.push_back(RenderVertex{ {-w, h, d}, {0.0f, 1.0f}, {-1.0f, 0.0f, 0.0f} });
+	// right
+	vertices.push_back(RenderVertex{ { w,-h,-d}, {0.0f, 0.0f}, {1.0f, 0.0f, 0.0f} });
+	vertices.push_back(RenderVertex{ { w, h,-d}, {0.0f, 1.0f}, {1.0f, 0.0f, 0.0f} });
+	vertices.push_back(RenderVertex{ { w,-h, d}, {1.0f, 0.0f}, {1.0f, 0.0f, 0.0f} });
+	vertices.push_back(RenderVertex{ { w, h, d}, {1.0f, 1.0f}, {1.0f, 0.0f, 0.0f} });
+	
+	std::vector<Uint16> indices = {
+		0,1,2, 0,2,3,
+		4,6,5, 4,7,6,
+		8,9,10, 9,11,10,
+		12,14,13, 14,15,13,
+		18,19,16, 19,17,16,
+		20,21,22, 21,23,22
+	};
 	return Primitive { vertices, indices, true };
 }
 

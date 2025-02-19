@@ -103,12 +103,9 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   state.sdfObjects.push_back(rect1);
   state.sdfObjects.push_back(tri1);
 
-  int obj1 = state.objp->uploadObject(torus2d(10.0f, 6.0f, 32, 5.0f));
+  int obj1 = state.objp->uploadObject(cube(12.0f, 10.0f, 2.0f));
   RenderObject &obj = state.objp->getObject(obj1);
   obj.albedo = modAlpha(CYAN, 0.5f);
-  obj.pos = glm::vec3(5.0f, 0.0f, 0.0f);
-  obj.rotAxis = glm::vec3(1.0f, 0.0f, 0.0f);
-  obj.rotAngleRad = 0.06f;
   state.objp->updateCamera(RenderCamera {
     .perspective = true,
     .viewWidth = 800.0f,
@@ -240,6 +237,14 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   SDL_snprintf(str, sizeof(str), "Debug | SDF: %.2f, D: %.2f, RM: %.2f", sdf, distFromLight, rm);
   state.overlayStrs[1].updateText(str);
 
+  // update objects
+  RenderObject &obj = state.objp->getObject(0);
+  obj.pos = glm::vec3(
+    (state.mousePosScreenSpace.x - state.winSize.x / 2.0f) / 10.0f,
+    (state.mousePosScreenSpace.y - state.winSize.y / 2.0f) / 10.0f,
+    5.0f
+  );
+
   // acquire command buffer
 	SDL_GPUCommandBuffer *cmdBuf = SDL_AcquireGPUCommandBuffer(state.gpu);
   SDL_InsertGPUDebugLabel(cmdBuf, "Screen Render");
@@ -254,7 +259,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 	// define render pass
 	SDL_GPURenderPass *pass = SDL_BeginGPURenderPass(cmdBuf, new SDL_GPUColorTargetInfo {
 		.texture = swapchain,
-		.clear_color = SDL_FColor{ 0.1f, 0.1f, 0.2f, 1.0f },
+		.clear_color = SDL_FColor{ 0.02f, 0.02f, 0.08f, 1.0f },
 		.load_op = SDL_GPU_LOADOP_CLEAR,
 		.store_op = SDL_GPU_STOREOP_STORE,
 	}, 1, NULL);
