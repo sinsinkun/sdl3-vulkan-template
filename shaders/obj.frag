@@ -9,6 +9,7 @@ layout(location = 2) in vec3 pos;
 layout(set = 3, binding = 0) uniform UniformBufferObject {
   vec4 lightColor;
   vec3 lightPos;
+  float lightMaxDist;
   float ambientIntensity;
   float specularIntensity;
   float shininess;
@@ -39,5 +40,9 @@ void main() {
   float spec = pow(max(dot(vd, rd), 0.0), shininess);
   vec3 specular = specularIntensity * spec * lightColor.rgb;
 
-  outColor = vec4((ambient + diffuse + specular) * baseColor.xyz, baseColor.a);
+  // distance attenuation
+  float d = distance(lightPos, pos);
+  float attenuation = clamp((2.0 * lightMaxDist) / (d + lightMaxDist) - 1.0, 0.0, 1.0);
+
+  outColor = vec4((ambient + diffuse + specular) * attenuation * baseColor.xyz, baseColor.a);
 }

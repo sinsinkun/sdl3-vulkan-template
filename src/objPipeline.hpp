@@ -12,11 +12,11 @@ namespace App {
   struct LightMaterial {
     SDL_FColor lightColor = BLACK;
     glm::vec3 lightPos = glm::vec3(0.0f);
+    float lightMaxDist = 1000.0f;
     float ambientIntensity = 0.0f;
     float specularIntensity = 0.0f;
     float shininess = 32.0f;
-    float padding1;
-    float padding2;
+    float padding = 0.0f;
   };
   struct PhongMaterial : LightMaterial {
     SDL_FColor albedo = GRAY;
