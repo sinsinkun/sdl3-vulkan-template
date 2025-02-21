@@ -73,45 +73,18 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
   SDL_AppResult setupRes = setupSDL(state);
   if (setupRes != SDL_APP_CONTINUE) return setupRes;
-  state.font = TTF_OpenFont("assets/Helvetica.ttf", 18);
 
   SDL_GPUTextureFormat scFormat = SDL_GetGPUSwapchainTextureFormat(state.gpu, state.window);
   state.overlayp = new TextPipeline(scFormat, state.gpu);
-  state.sdfp = new SDFPipeline(scFormat, state.gpu);
-  state.sdfpDebug = new SDFPipeline(scFormat, state.gpu);
-  state.objp = new ObjectPipeline(scFormat, state.gpu, PT_Tri, SDL_GPU_CULLMODE_BACK);
+  state.font = TTF_OpenFont("assets/Helvetica.ttf", 18);
+  state.fpsOverlay = new StringObject(state.textEngine, state.font, "FPS: 9999.00");
 
-  StringObject str1 = StringObject(state.textEngine, state.font, "FPS: 9999.00");
-  StringObject str2 = StringObject(state.textEngine, state.font, "Debug: ");
-  str2.color = ORANGE;
-  str2.origin = glm::vec3{0.0f, 580.0f, 0.0f};
-  state.overlayStrs.push_back(str1);
-  state.overlayStrs.push_back(str2);
-
-  SDFObject cir1 = SDFObject::circle(glm::vec2{ 500.0f, 450.0f }, 38.0f);
-  cir1.withColor(RED);
-  SDFObject cir2 = SDFObject::circle(glm::vec2{ 300.0f, 200.0f }, 50.0f);
-  cir2.withColor(PURPLE);
-  SDFObject rect1 = SDFObject::rect(glm::vec2{ 400.0f, 200.0f }, glm::vec2{ 50.0f, 60.0f });
-  rect1.withColor(modAlpha(GREEN, 0.8f));
-  rect1.withRoundCorner(10.0f);
-  SDFObject tri1 = SDFObject::triangle(glm::vec2{ 100.0f, 400.0f}, glm::vec2{ 220.0f, 330.0f }, glm::vec2{ 180.0f, 500.0f });
-  tri1.withColor(GRAY);
-  tri1.withRoundCorner(5.0f);
-  state.sdfObjects.push_back(cir1);
-  state.sdfObjects.push_back(cir2);
-  state.sdfObjects.push_back(rect1);
-  state.sdfObjects.push_back(tri1);
-
-  int obj1 = state.objp->uploadObject(sphere(10.0f, 24, 18));
-  RenderObject &obj = state.objp->getObject(obj1);
-  obj.albedo = modAlpha(GRAY, 0.8f);
-  state.objp->updateCamera(RenderCamera {
-    .perspective = true,
-    .viewWidth = 800.0f,
-    .viewHeight = 600.0f,
-    .fovY = degToRad(60.0f),
-  });
+  // pre-initialize scenes
+  // --> could also initialize scenes dynamically
+  SdfScene *sdfscn = new SdfScene(state.gpu, scFormat);
+  ObjScene *objscn = new ObjScene(state.gpu, scFormat);
+  state.scenes.push_back(sdfscn);
+  state.scenes.push_back(objscn);
 
   return SDL_APP_CONTINUE;
 }
@@ -124,8 +97,8 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
     case SDL_EVENT_QUIT:  
       return SDL_APP_SUCCESS;
     case SDL_EVENT_WINDOW_RESIZED:
-      state.winSize.x = event->window.data1;
-      state.winSize.y = event->window.data2;
+      state.sys.winSize.x = event->window.data1;
+      state.sys.winSize.y = event->window.data2;
       break;
     case SDL_EVENT_KEY_DOWN:
       // quit if user hits ESC key
@@ -133,19 +106,22 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
         return SDL_APP_SUCCESS;
       }
       if (event->key.scancode == SDL_SCANCODE_F1) {
-        state.overlayStrs[0].visible = true;
+        state.fpsOverlay->visible = true;
       }
-      if (event->key.scancode == SDL_SCANCODE_SPACE) {
-        state.sdfPosUpdate = !state.sdfPosUpdate;
+      if (event->key.scancode == SDL_SCANCODE_1) {
+        state.currentScene = 0;
+      }
+      if (event->key.scancode == SDL_SCANCODE_2) {
+        state.currentScene = 1;
       }
       break;
     case SDL_EVENT_KEY_UP:
       if (event->key.scancode == SDL_SCANCODE_F1) {
-        state.overlayStrs[0].visible = false;
+        state.fpsOverlay->visible = false;
       }
       break;
     case SDL_EVENT_MOUSE_MOTION:
-      state.mousePosScreenSpace = glm::vec2(event->motion.x, event->motion.y);
+      state.sys.mousePosScreenSpace = glm::vec2(event->motion.x, event->motion.y);
       break;
     case SDL_EVENT_TEXT_INPUT:
       break;
@@ -155,95 +131,31 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
   return SDL_APP_CONTINUE;
 }
 
-float rayMarchDebug(
-  std::vector<SDFObject> *cirs, glm::vec2 point, glm::vec2 target, 
-  float maxDist, std::vector<SDFObject> *objs
-) {
-  glm::vec2 dir = glm::normalize(target - point);
-  glm::vec2 p = point;
-  float sdf = calculateSdf(p, maxDist, objs);
-  float rayDist = sdf;
-  // note: pipeline has a max obj count of 1000
-  for (int i=0; i < 1000; i++) {
-    p = p + dir * sdf;
-    sdf = calculateSdf(p, maxDist, objs);
-    SDFObject cir = SDFObject::circle(p, sdf);
-    cir.asOutline(1.0f);
-    cirs->push_back(cir);
-    rayDist += sdf;
-    if (rayDist > maxDist || sdf < 0.01f) break;
-  }
-  if (rayDist > maxDist) rayDist = maxDist;
-  return rayDist;
-}
-
 // update/render loop
 SDL_AppResult SDL_AppIterate(void *appstate) {
   AppState& state = *static_cast<AppState*>(appstate);
 
   // calculate FPS
   Uint64 newTime = SDL_GetTicksNS();
-  Uint64 delta = newTime - state.lifetime;
+  Uint64 delta = newTime - state.sys.lifetime;
   if (delta < 100001) return SDL_APP_CONTINUE;
-  state.lifetime = newTime;
+  state.sys.lifetime = newTime;
   if (state.timeSinceLastFps > (SDL_NS_PER_SECOND / 5)) {
     state.timeSinceLastFps = 0;
     float fps = 0.0f;
     if (delta != 0) fps = SDL_NS_PER_SECOND / delta;
-    // SDL_Log("FPS: %.2f", fps);
-    if (state.overlayStrs.size() > 0) {
-      char str[100];
-      SDL_snprintf(str, sizeof(str), "FPS: %.2f", fps);
-      state.overlayStrs[0].updateText(str);
-    }
+    char str[100];
+    SDL_snprintf(str, sizeof(str), "FPS: %.2f (Scene %d)", fps, state.currentScene + 1);
+    state.fpsOverlay->updateText(str);
   } else {
     state.timeSinceLastFps += delta;
   }
 
-  // update sdf objects
-  if (state.sdfPosUpdate) {
-    state.sdfTime += delta;
-    state.sdfLightPos = state.mousePosScreenSpace;
-    // SDFObject* obj0 = &state.sdfObjects.at(0);
-    // obj0->updatePosition(state.mousePosScreenSpace);
-    SDFObject* obj1 = &state.sdfObjects.at(1);
-    obj1->updatePosition(glm::vec2(
-      300.0f + 100.0f * SDL_sin(0.001f * (state.sdfTime / SDL_NS_PER_MS)),
-      300.0f + 100.0f * SDL_cos(0.001f * (state.sdfTime / SDL_NS_PER_MS))
-    ));
-    SDFObject* obj3 = &state.sdfObjects.at(3);
-    obj3->updatePosition(glm::vec2(
-      100.0f,
-      400.0f + 100.0f * SDL_sin(0.001f * (state.sdfTime / SDL_NS_PER_MS))
-    ));
-  }
-  
-  // update debug sdf objects
-  std::vector<SDFObject> debugCirs;
-  float sdf = calculateSdf(state.mousePosScreenSpace, 10000.0f, &state.sdfObjects);
-  SDFObject sdfCir = SDFObject::circle(state.mousePosScreenSpace, SDL_fabsf(sdf));
-  sdfCir.asOutline(1.0f);
-  if (sdf < 0.0f) sdfCir.withColor(BLACK);
-  debugCirs.push_back(sdfCir);
-  SDFObject lineToLight = SDFObject::line(state.mousePosScreenSpace, state.sdfLightPos, 1.0f);
-  debugCirs.push_back(lineToLight);
-  float distFromLight = glm::length(state.sdfLightPos - state.mousePosScreenSpace);
-  float rm = rayMarchDebug(
-    &debugCirs, state.mousePosScreenSpace, state.sdfLightPos, distFromLight, &state.sdfObjects
-  );
-
-  // update debug text
-  char str[400];
-  SDL_snprintf(str, sizeof(str), "Debug | SDF: %.2f, D: %.2f, RM: %.2f", sdf, distFromLight, rm);
-  state.overlayStrs[1].updateText(str);
-
   // update objects
-  RenderObject &obj = state.objp->getObject(0);
-  obj.pos = glm::vec3(
-    (state.mousePosScreenSpace.x - state.winSize.x / 2.0f) / 10.0f,
-    (state.mousePosScreenSpace.y - state.winSize.y / 2.0f) / 10.0f,
-    60.0f
-  );
+  if (state.scenes.size() > 0 && state.currentScene > -1) {
+    SDL_AppResult res = state.scenes.at(state.currentScene)->update(state.sys);
+    if (res != SDL_APP_CONTINUE) return res;
+  }
 
   // acquire command buffer
 	SDL_GPUCommandBuffer *cmdBuf = SDL_AcquireGPUCommandBuffer(state.gpu);
@@ -264,37 +176,16 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 		.store_op = SDL_GPU_STOREOP_STORE,
 	}, 1, NULL);
 
-  // update render objects in sync with render
-  state.sdfp->refreshObjects(state.sdfObjects);
-  state.sdfpDebug->refreshObjects(debugCirs);
-  // start render pipelines
-  state.sdfp->render(
-    cmdBuf, pass, swapchain,
-    SDFSysData {
-      .screenSize = state.winSize,
-      .lightPos = state.sdfLightPos,
-      .lightColor = SDL_FColor{0.8f, 0.8f, 0.2f, 0.8f},
-      .lightDist = 800.0f,
-      .objCount = (Uint32)state.sdfObjects.size()
+  if (state.scenes.size() > 0 && state.currentScene > -1) {
+    SDL_AppResult res = state.scenes.at(state.currentScene)->render(cmdBuf, pass, swapchain);
+    if (res != SDL_APP_CONTINUE) {
+      SDL_CancelGPUCommandBuffer(cmdBuf);
+      return res;
     }
-  );
-  state.sdfpDebug->render(
-    cmdBuf, pass, swapchain,
-    SDFSysData {
-      .screenSize = state.winSize,
-      .lightPos = glm::vec2(0.0f),
-      .lightColor = BLACK,
-      .lightDist = 0.0f,
-      .objCount = (Uint32)debugCirs.size()
-    }
-  );
-  state.objp->render(cmdBuf, pass, swapchain, state.winSize, LightMaterial {
-    .lightColor = RED,
-    .lightPos = glm::vec3(0.0f, 10.0f, 0.0f),
-    .ambientIntensity = 0.4f,
-    .specularIntensity = 0.6f,
-  });
-  state.overlayp->render(cmdBuf, pass, swapchain, state.winSize, state.overlayStrs);
+  }
+
+  std::vector<StringObject> overlayStrs = { *state.fpsOverlay };
+  state.overlayp->render(cmdBuf, pass, swapchain, state.sys.winSize, overlayStrs);
 
   // finish render pass
 	SDL_EndGPURenderPass(pass);
@@ -310,21 +201,21 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 void SDL_AppQuit(void *appstate, SDL_AppResult result) {
   AppState& state = *static_cast<AppState*>(appstate);
   SDL_Log("Closing SDL3");
-  for (int i=0; i<state.overlayStrs.size(); i++) {
-    TTF_DestroyText(state.overlayStrs[i].ttfText);
+  for (Scene* &scene : state.scenes) {
+    scene->destroy();
+    delete scene;
   }
-  state.overlayStrs.clear();
-  state.objp->destroy();
-  delete state.objp;
-  state.sdfp->destroy();
-  delete state.sdfp;
-  state.sdfpDebug->destroy();
-  delete state.sdfpDebug;
+  state.scenes.clear();
+
+  TTF_DestroyText(state.fpsOverlay->ttfText);
+  delete state.fpsOverlay;
   state.overlayp->destroy();
   delete state.overlayp;
+
   TTF_CloseFont(state.font);
   TTF_DestroyGPUTextEngine(state.textEngine);
   TTF_Quit();
+
   SDL_ReleaseWindowFromGPUDevice(state.gpu, state.window);
   SDL_DestroyGPUDevice(state.gpu);
   SDL_DestroySurface(state.winIcon);

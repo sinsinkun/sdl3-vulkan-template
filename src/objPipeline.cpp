@@ -319,7 +319,7 @@ glm::mat4x4 projMatrix(RenderCamera const &cam) {
 
 void ObjectPipeline::render(
   SDL_GPUCommandBuffer *cmdBuf, SDL_GPURenderPass *pass,
-  SDL_GPUTexture* target, glm::vec2 targetSize, LightMaterial const &light
+  SDL_GPUTexture* target, LightMaterial const &light
 ) {
   SDL_BindGPUGraphicsPipeline(pass, pipeline);
   // build view/proj matrices early

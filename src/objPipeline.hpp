@@ -37,7 +37,7 @@ namespace App {
     void updateCamera(RenderCamera cam);
     void render(
       SDL_GPUCommandBuffer *cmdBuf, SDL_GPURenderPass *pass,
-      SDL_GPUTexture* target, glm::vec2 targetSize, LightMaterial const &light
+      SDL_GPUTexture* target, LightMaterial const &light
     );
     void clearObjects();
     void destroy();
