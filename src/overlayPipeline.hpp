@@ -16,7 +16,7 @@ namespace App {
     SDL_GPUTexture *tx = NULL;
     void render(
       SDL_GPUCommandBuffer *cmdBuf, SDL_GPURenderPass *pass,
-      SDL_GPUTexture* target, Vec2 screenSize
+      SDL_GPUTexture* target, glm::vec2 screenSize
     );
     void destroy();
   };

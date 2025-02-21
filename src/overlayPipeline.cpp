@@ -53,11 +53,11 @@ OverlayPipeline::OverlayPipeline(
 
 void OverlayPipeline::render(
   SDL_GPUCommandBuffer *cmdBuf, SDL_GPURenderPass *pass,
-  SDL_GPUTexture* target, Vec2 screenSize
+  SDL_GPUTexture* target, glm::vec2 screenSize
 ) {
   SDL_BindGPUGraphicsPipeline(pass, pipeline);
   SDL_BindGPUFragmentStorageTextures(pass, 0, &tx, 1);
-  SDL_PushGPUFragmentUniformData(cmdBuf, 0, &screenSize, sizeof(Vec2));
+  SDL_PushGPUFragmentUniformData(cmdBuf, 0, &screenSize, sizeof(glm::vec2));
   SDL_DrawGPUPrimitives(pass, 6, 1, 0, 0);
 }
 

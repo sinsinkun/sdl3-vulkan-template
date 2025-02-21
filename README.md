@@ -20,12 +20,35 @@ int main(int argc, char *argv[]) {
 }
 ```
 
+## Example pipelines
+- ObjectPipeline
+
+Standard generic object pipeline for 2D/3D objects.
+Objects are defined with vertices, and transformed with a standard MVP matrix.
+
+Anti-aliasing not included.
+
+- TextPipeline
+
+Renders text using the SDL3_TTF library. Draws quads on the target with the appropriate
+UV coordinates corresponding to a texture  atlas.
+
+- SDFPipeline
+
+Renders 2D shapes using SDFs instead of the standard object method.
+
 ## Installation
 Compiled using g++ from the default msys2 location:
 - C:/msys64/ucrt64/bin/g++.exe
 
-SDL3 is assumed to be manually installed at C:/Programs/SDL3
-(msys2 SDL3 package can't be linked statically)
+glm package is installed through msys2
+```
+pacman -Ss glm
+pacman -S {pkg_name}
+```
+
+SDL3/SDL3_ttf/SDL3_image is assumed to be manually installed at C:/Programs/SDL3
+(msys2 packages prevents statically linking standard libraries)
 
 SDL3 installation instructions from source:
 (prerequisite: CMake)
@@ -37,6 +60,8 @@ SDL3 installation instructions from source:
 5. `cmake .. -G "MinGW Makefiles" -DCMAKE_INSTALL_PREFIX=C:\Programs\SDL3`
 6. `cmake --build . --config Release`
 7. `cmake --install .`
+
+Repeat the above for SDL3_ttf and SDL3_image
 
 ## Build
 .vscode is setup to run debug mode in VSCode (F5).
