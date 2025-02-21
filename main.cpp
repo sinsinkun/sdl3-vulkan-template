@@ -62,12 +62,13 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   SDL_AppResult setupRes = setupSDL(state);
   if (setupRes != SDL_APP_CONTINUE) return setupRes;
 
+  SDL_GPUTextureFormat scFormat = SDL_GetGPUSwapchainTextureFormat(state.gpu, state.window);
   state.textEngine.init(state.gpu);
   state.textEngine.loadFont("assets/Helvetica.ttf", 240);
+  state.overlayp = new OverlayPipeline(scFormat, state.gpu, &state.textEngine);
 
   // pre-initialize scenes
   // --> could also initialize scenes dynamically
-  SDL_GPUTextureFormat scFormat = SDL_GetGPUSwapchainTextureFormat(state.gpu, state.window);
   SdfScene *sdfscn = new SdfScene(state.gpu, scFormat);
   ObjScene *objscn = new ObjScene(state.gpu, scFormat);
   state.scenes.push_back(sdfscn);
@@ -165,7 +166,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
       SDL_CancelGPUCommandBuffer(cmdBuf);
       return res;
     }
-  );
+  }
   state.overlayp->render(cmdBuf, pass, swapchain, glm::vec2(800.0f, 600.0f));
 
   // finish render pass
