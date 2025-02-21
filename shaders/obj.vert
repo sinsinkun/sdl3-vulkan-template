@@ -17,6 +17,9 @@ layout(location = 2) out vec3 outPos;
 void main() {
   mat4x4 mvp = proj * view * model;
   vec4 outP = model * vec4(inPos, 1.0);
+  // note: non-uniform scaling on the object will break this normal calculation, 
+  // in which case we need mat3(transpose(inverse(model))) * inNormal,
+  // but inverse is expensive to calculate so it should be passed in via the UBO
   vec4 outN = model * vec4(inNormal, 0.0);
   vec4 outFrag = mvp * vec4(inPos, 1.0);
   outUv = inUv;

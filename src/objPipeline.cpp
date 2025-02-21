@@ -319,7 +319,7 @@ glm::mat4x4 projMatrix(RenderCamera const &cam) {
 
 void ObjectPipeline::render(
   SDL_GPUCommandBuffer *cmdBuf, SDL_GPURenderPass *pass,
-  SDL_GPUTexture* target, glm::vec2 targetSize
+  SDL_GPUTexture* target, glm::vec2 targetSize, LightMaterial const &light
 ) {
   SDL_BindGPUGraphicsPipeline(pass, pipeline);
   // build view/proj matrices early
@@ -346,7 +346,10 @@ void ObjectPipeline::render(
       .sampler = obj.sampler
     }, 1);
     // upload material
-    SDL_PushGPUFragmentUniformData(cmdBuf, 0, &obj.albedo, sizeof(SDL_FColor));
+    PhongMaterial phong = PhongMaterial(light);
+    phong.albedo = obj.albedo;
+    phong.cameraPos = cam.pos;
+    SDL_PushGPUFragmentUniformData(cmdBuf, 0, &phong, sizeof(PhongMaterial));
     // draw
     if (obj.indexCount > 0) {
       SDL_BindGPUIndexBuffer(pass, new SDL_GPUBufferBinding {

@@ -105,7 +105,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
   int obj1 = state.objp->uploadObject(sphere(10.0f, 24, 18));
   RenderObject &obj = state.objp->getObject(obj1);
-  obj.albedo = modAlpha(CYAN, 0.8f);
+  obj.albedo = modAlpha(GRAY, 0.8f);
   state.objp->updateCamera(RenderCamera {
     .perspective = true,
     .viewWidth = 800.0f,
@@ -288,7 +288,12 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
       .objCount = (Uint32)debugCirs.size()
     }
   );
-  state.objp->render(cmdBuf, pass, swapchain, state.winSize);
+  state.objp->render(cmdBuf, pass, swapchain, state.winSize, LightMaterial {
+    .lightColor = RED,
+    .lightPos = glm::vec3(0.0f, 10.0f, 0.0f),
+    .ambientIntensity = 0.4f,
+    .specularIntensity = 0.6f,
+  });
   state.overlayp->render(cmdBuf, pass, swapchain, state.winSize, state.overlayStrs);
 
   // finish render pass
