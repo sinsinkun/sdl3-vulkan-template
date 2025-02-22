@@ -27,18 +27,16 @@ namespace App {
   public:
     ObjectPipeline(
       SDL_GPUTextureFormat targetFormat, SDL_GPUDevice *gpu,
-      GPUPrimitiveType type, SDL_GPUCullMode cullMode
+      GPUPrimitiveType type, SDL_GPUCullMode cullMode, Uint32 sw, Uint32 sh
     );
+    void resizeScreen(Uint32 w, Uint32 h);
     int uploadObject(std::vector<RenderVertex> const &vertices);
     int uploadObject(std::vector<RenderVertex> const &vertices, std::vector<Uint16> const &indices);
     int uploadObject(Primitive const &shape);
     void addTextureToObject(int id, SDL_GPUTextureFormat txFormat, Uint32 w, Uint32 h, bool isRenderTarget);
     RenderObject& getObject(int id);
     void updateCamera(RenderCamera cam);
-    void render(
-      SDL_GPUCommandBuffer *cmdBuf, SDL_GPURenderPass *pass,
-      SDL_GPUTexture* target, LightMaterial const &light
-    );
+    void render(SDL_GPUCommandBuffer *cmdBuf, SDL_GPUTexture* target, LightMaterial const &light);
     void clearObjects();
     void destroy();
   private:
@@ -46,6 +44,6 @@ namespace App {
     std::vector<RenderObject> robjs;
     SDL_GPUDevice *device = NULL;
     SDL_GPUGraphicsPipeline *pipeline = NULL;
-    SDL_GPUBuffer *debugVertBuffer = NULL;
+    SDL_GPUTexture *depthTx = NULL;
   };
 }

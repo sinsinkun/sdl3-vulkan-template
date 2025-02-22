@@ -24,7 +24,7 @@ namespace App {
       SDL_Log("ERR: scene update method not overwritten");
       return SDL_APP_CONTINUE;
     };
-    virtual SDL_AppResult render(SDL_GPUCommandBuffer *cmdBuf, SDL_GPURenderPass *pass, SDL_GPUTexture* target) {
+    virtual SDL_AppResult render(SDL_GPUCommandBuffer *cmdBuf, SDL_GPUTexture* screenTx) {
       SDL_Log("ERR: scene render method not overwritten");
       return SDL_APP_CONTINUE;
     };
@@ -39,7 +39,7 @@ namespace App {
   public:
     SdfScene(SDL_GPUDevice *gpu, SDL_GPUTextureFormat targetFormat);
     SDL_AppResult update(SystemUpdates const &sys) override;
-    SDL_AppResult render(SDL_GPUCommandBuffer *cmdBuf, SDL_GPURenderPass *pass, SDL_GPUTexture* screenTx) override;
+    SDL_AppResult render(SDL_GPUCommandBuffer *cmdBuf, SDL_GPUTexture* screenTx) override;
     void destroy() override;
     SDFPipeline *sdfPipe = NULL;
     glm::vec2 screenSize = glm::vec2(0.0f);
@@ -50,9 +50,10 @@ namespace App {
   public:
     ObjScene(SDL_GPUDevice *gpu, SDL_GPUTextureFormat targetFormat);
     SDL_AppResult update(SystemUpdates const &sys);
-    SDL_AppResult render(SDL_GPUCommandBuffer *cmdBuf, SDL_GPURenderPass *pass, SDL_GPUTexture* screenTx);
+    SDL_AppResult render(SDL_GPUCommandBuffer *cmdBuf, SDL_GPUTexture* screenTx);
     void destroy();
     ObjectPipeline *objPipe = NULL;
+    glm::vec2 screenSize = glm::vec2(0.0f);
   };
   // root app state
   struct AppState {

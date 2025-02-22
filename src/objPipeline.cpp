@@ -4,7 +4,7 @@ using namespace App;
 
 ObjectPipeline::ObjectPipeline(
   SDL_GPUTextureFormat targetFormat, SDL_GPUDevice *gpu,
-  GPUPrimitiveType type, SDL_GPUCullMode cullMode
+  GPUPrimitiveType type, SDL_GPUCullMode cullMode, Uint32 sw, Uint32 sh
 ) {
   device = gpu;
   // create shaders
@@ -32,6 +32,12 @@ ObjectPipeline::ObjectPipeline(
 			.fill_mode = fillMode,
 			.cull_mode = cullMode,
 		},
+    .depth_stencil_state = SDL_GPUDepthStencilState {
+      .compare_op = SDL_GPU_COMPAREOP_LESS,
+      .write_mask = 0xFF,
+      .enable_depth_test = true,
+      .enable_depth_write = true,
+    },
 		.target_info = SDL_GPUGraphicsPipelineTargetInfo {
 			.color_target_descriptions = new SDL_GPUColorTargetDescription {
 				.format = targetFormat,
@@ -46,12 +52,38 @@ ObjectPipeline::ObjectPipeline(
 				},
 			},
 			.num_color_targets = 1,
+      .depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D16_UNORM,
+      .has_depth_stencil_target = true,
 		},
 	});
+
+  // create depth texture
+  depthTx = SDL_CreateGPUTexture(device, new SDL_GPUTextureCreateInfo {
+    .type = SDL_GPU_TEXTURETYPE_2D,
+    .format = SDL_GPU_TEXTUREFORMAT_D16_UNORM,
+    .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER | SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET,
+    .width = sw,
+    .height = sh,
+    .layer_count_or_depth = 1,
+    .num_levels = 1,
+  });
 
   // release shaders
 	SDL_ReleaseGPUShader(device, vertShader);
   SDL_ReleaseGPUShader(device, fragShader);
+}
+
+void ObjectPipeline::resizeScreen(Uint32 w, Uint32 h) {
+  SDL_ReleaseGPUTexture(device, depthTx);
+  depthTx = SDL_CreateGPUTexture(device, new SDL_GPUTextureCreateInfo {
+    .type = SDL_GPU_TEXTURETYPE_2D,
+    .format = SDL_GPU_TEXTUREFORMAT_D16_UNORM,
+    .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER | SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET,
+    .width = w,
+    .height = h,
+    .layer_count_or_depth = 1,
+    .num_levels = 1,
+  });
 }
 
 int ObjectPipeline::uploadObject(std::vector<RenderVertex> const &vertices) {
@@ -317,10 +349,18 @@ glm::mat4x4 projMatrix(RenderCamera const &cam) {
   }
 }
 
-void ObjectPipeline::render(
-  SDL_GPUCommandBuffer *cmdBuf, SDL_GPURenderPass *pass,
-  SDL_GPUTexture* target, LightMaterial const &light
-) {
+void ObjectPipeline::render(SDL_GPUCommandBuffer *cmdBuf, SDL_GPUTexture* target, LightMaterial const &light) {
+  SDL_GPURenderPass *pass = SDL_BeginGPURenderPass(cmdBuf, new SDL_GPUColorTargetInfo {
+		.texture = target,
+		.clear_color = SDL_FColor{ 0.02f, 0.02f, 0.08f, 1.0f },
+		.load_op = SDL_GPU_LOADOP_LOAD,
+		.store_op = SDL_GPU_STOREOP_STORE,
+	}, 1, new SDL_GPUDepthStencilTargetInfo {
+    .texture = depthTx,
+    .clear_depth = 1,
+    .load_op = SDL_GPU_LOADOP_CLEAR,
+    .store_op = SDL_GPU_STOREOP_STORE,
+  });
   SDL_BindGPUGraphicsPipeline(pass, pipeline);
   // build view/proj matrices early
   glm::mat4x4 view = viewMatrix(cam);
@@ -361,6 +401,8 @@ void ObjectPipeline::render(
       SDL_DrawGPUPrimitives(pass, obj.vertexCount, 1, 0, 0);
     }
   }
+  // end pass
+  SDL_EndGPURenderPass(pass);
 }
 
 void ObjectPipeline::clearObjects() {
@@ -375,6 +417,6 @@ void ObjectPipeline::clearObjects() {
 
 void ObjectPipeline::destroy() {
   clearObjects();
-  SDL_ReleaseGPUBuffer(device, debugVertBuffer);
+  SDL_ReleaseGPUTexture(device, depthTx);
   SDL_ReleaseGPUGraphicsPipeline(device, pipeline);
 }

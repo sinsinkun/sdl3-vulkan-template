@@ -97,7 +97,7 @@ void addGlyphToVertices(
 
 void TextPipeline::render(
   SDL_GPUCommandBuffer *cmdBuf, SDL_GPURenderPass *pass,
-  SDL_GPUTexture* target, glm::vec2 targetSize,
+	SDL_GPUTexture* target, glm::vec2 targetSize,
 	std::vector<StringObject> &strings
 ) {
 	if (strings.empty()) { return; }
@@ -116,6 +116,16 @@ void TextPipeline::render(
 	}
 	if (vertices.size() < 1) { return; }
 	copyVertexDataIntoBuffer(device, vertBuf, indexBuf, &vertices, &indices);
+
+	bool internalPass = pass == NULL;
+	if (internalPass) {
+		pass = SDL_BeginGPURenderPass(cmdBuf, new SDL_GPUColorTargetInfo {
+			.texture = target,
+			.clear_color = SDL_FColor{ 0.02f, 0.02f, 0.08f, 1.0f },
+			.load_op = SDL_GPU_LOADOP_LOAD,
+			.store_op = SDL_GPU_STOREOP_STORE,
+		}, 1, NULL);
+	}
 
 	// draw pipeline
   SDL_BindGPUGraphicsPipeline(pass, pipeline);
@@ -142,6 +152,10 @@ void TextPipeline::render(
 			index_offset += seq->num_indices;
 			vertex_offset += seq->num_vertices;
 		}
+	}
+
+	if (internalPass) {
+		SDL_EndGPURenderPass(pass);
 	}
 }
 

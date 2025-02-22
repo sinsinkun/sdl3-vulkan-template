@@ -28,9 +28,9 @@ SDL_AppResult SdfScene::update(SystemUpdates const &sys) {
   return SDL_APP_CONTINUE;
 }
 
-SDL_AppResult SdfScene::render(SDL_GPUCommandBuffer *cmdBuf, SDL_GPURenderPass *pass, SDL_GPUTexture* screen) {
+SDL_AppResult SdfScene::render(SDL_GPUCommandBuffer *cmdBuf, SDL_GPUTexture* screen) {
   sdfPipe->refreshObjects(objects);
-  sdfPipe->render(cmdBuf, pass, screen, SDFSysData {
+  sdfPipe->render(cmdBuf, NULL, screen, SDFSysData {
     .screenSize = screenSize,
     .lightPos = sdfLightPos,
     .lightColor = SDL_FColor{0.8f, 0.8f, 0.2f, 0.8f},

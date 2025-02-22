@@ -189,14 +189,25 @@ void SDFPipeline::refreshObjects(std::vector<SDFObject> &objs) {
 	SDL_ReleaseGPUTransferBuffer(device, transferBuf);
 }
 
-void SDFPipeline::render(
-	SDL_GPUCommandBuffer *cmdBuf, SDL_GPURenderPass *pass,
-	SDL_GPUTexture* target, SDFSysData sys
-) {
+void SDFPipeline::render(SDL_GPUCommandBuffer *cmdBuf, SDL_GPURenderPass *pass, SDL_GPUTexture* target, SDFSysData sys) {
+	bool internalPass = pass == NULL;
+	if (internalPass) {
+		pass = SDL_BeginGPURenderPass(cmdBuf, new SDL_GPUColorTargetInfo {
+			.texture = target,
+			.clear_color = SDL_FColor{ 0.02f, 0.02f, 0.08f, 1.0f },
+			.load_op = SDL_GPU_LOADOP_LOAD,
+			.store_op = SDL_GPU_STOREOP_STORE,
+		}, 1, NULL);
+	}
+
 	SDL_BindGPUGraphicsPipeline(pass, pipeline);
 	SDL_PushGPUFragmentUniformData(cmdBuf, 0, &sys, sizeof(SDFSysData));
 	SDL_BindGPUFragmentStorageBuffers(pass, 0, &objsBuffer, 1);
 	SDL_DrawGPUPrimitives(pass, 6, 1, 0, 0);
+
+	if (internalPass) {
+		SDL_EndGPURenderPass(pass);
+	}
 }
 
 void SDFPipeline::destroy() {

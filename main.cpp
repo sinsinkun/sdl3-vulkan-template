@@ -168,27 +168,30 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 		SDL_CancelGPUCommandBuffer(cmdBuf);
 		return SDL_APP_CONTINUE;
 	}
-	// define render pass
-	SDL_GPURenderPass *pass = SDL_BeginGPURenderPass(cmdBuf, new SDL_GPUColorTargetInfo {
+
+  // clear swapchain
+  SDL_GPURenderPass *pass = SDL_BeginGPURenderPass(cmdBuf, new SDL_GPUColorTargetInfo {
 		.texture = swapchain,
 		.clear_color = SDL_FColor{ 0.02f, 0.02f, 0.08f, 1.0f },
 		.load_op = SDL_GPU_LOADOP_CLEAR,
 		.store_op = SDL_GPU_STOREOP_STORE,
 	}, 1, NULL);
+  SDL_EndGPURenderPass(pass);
 
+  // render scene
   if (state.scenes.size() > 0 && state.currentScene > -1) {
-    SDL_AppResult res = state.scenes.at(state.currentScene)->render(cmdBuf, pass, swapchain);
+    SDL_AppResult res = state.scenes.at(state.currentScene)->render(cmdBuf, swapchain);
     if (res != SDL_APP_CONTINUE) {
       SDL_CancelGPUCommandBuffer(cmdBuf);
       return res;
     }
   }
 
+	// overlay render
   std::vector<StringObject> overlayStrs = { *state.fpsOverlay };
-  state.overlayp->render(cmdBuf, pass, swapchain, state.sys.winSize, overlayStrs);
+  state.overlayp->render(cmdBuf, NULL, swapchain, state.sys.winSize, overlayStrs);
 
-  // finish render pass
-	SDL_EndGPURenderPass(pass);
+  // end render chain
 	if (!SDL_SubmitGPUCommandBuffer(cmdBuf)) {
 		SDL_Log("Failed to submit GPU command %s", SDL_GetError());
 		return SDL_APP_FAILURE;
