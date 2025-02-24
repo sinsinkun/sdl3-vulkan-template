@@ -13,16 +13,12 @@
 
 namespace App {
   // scene helpers
-  struct SystemInput {
-    SDL_EventType type;
-    SDL_Scancode code;
-    Uint8 mButton;
-  };
   struct SystemUpdates {
     glm::vec2 mousePosScreenSpace = glm::vec2(0.0f);
     glm::vec2 winSize = glm::vec2(800.0f, 600.0f);
     Uint64 lifetime = 0;
-    std::vector<SystemInput> inputs;
+    const bool *kbStates = NULL;
+    SDL_MouseButtonFlags mFlags;
   };
   class Scene {
   public:

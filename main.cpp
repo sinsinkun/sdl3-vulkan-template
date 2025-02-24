@@ -70,7 +70,7 @@ SDL_AppResult setupSDL(AppState& state) {
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   *appstate = new AppState;
   AppState& state = *static_cast<AppState*>(*appstate);
-  state.sys.inputs.reserve(10);
+  state.sys.kbStates = SDL_GetKeyboardState(NULL);
 
   SDL_AppResult setupRes = setupSDL(state);
   if (setupRes != SDL_APP_CONTINUE) return setupRes;
@@ -111,34 +111,14 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
       if (event->key.scancode == SDL_SCANCODE_2) {
         state.currentScene = 1;
       }
-      state.sys.inputs.push_back(SystemInput {
-        .type = SDL_EVENT_KEY_DOWN,
-        .code = event->key.scancode,
-      });
       break;
     case SDL_EVENT_KEY_UP:
       if (event->key.scancode == SDL_SCANCODE_F1) {
         state.fpsOverlay->visible = false;
       }
-      state.sys.inputs.push_back(SystemInput {
-        .type = SDL_EVENT_KEY_UP,
-        .code = event->key.scancode,
-      });
       break;
     case SDL_EVENT_MOUSE_MOTION:
       state.sys.mousePosScreenSpace = glm::vec2(event->motion.x, event->motion.y);
-      break;
-    case SDL_EVENT_MOUSE_BUTTON_DOWN:
-      state.sys.inputs.push_back(SystemInput {
-        .type = SDL_EVENT_MOUSE_BUTTON_DOWN,
-        .mButton = event->button.button,
-      });
-      break;
-    case SDL_EVENT_MOUSE_BUTTON_UP:
-      state.sys.inputs.push_back(SystemInput {
-        .type = SDL_EVENT_MOUSE_BUTTON_UP,
-        .mButton = event->button.button,
-      });
       break;
     case SDL_EVENT_TEXT_INPUT:
       break;
@@ -170,10 +150,10 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
   // update objects
   if (state.scenes.size() > 0 && state.currentScene > -1) {
+    state.sys.mFlags = SDL_GetMouseState(NULL, NULL);
     SDL_AppResult res = state.scenes.at(state.currentScene)->update(state.sys);
     if (res != SDL_APP_CONTINUE) return res;
   }
-  state.sys.inputs.clear();
 
   // acquire command buffer
 	SDL_GPUCommandBuffer *cmdBuf = SDL_AcquireGPUCommandBuffer(state.gpu);

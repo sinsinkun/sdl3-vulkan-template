@@ -83,4 +83,6 @@ namespace App {
   Primitive tube(float outerRadius, float innerRadius, float h, Uint16 sides);
   Primitive sphere(float r, Uint16 sides, Uint16 slices);
   Primitive hemisphere(float r, Uint16 sides, Uint16 slices);
+  // inputs
+  bool getMouseBtnClicked(SDL_MouseButtonFlags bitFlags, Uint32 btn);
 }

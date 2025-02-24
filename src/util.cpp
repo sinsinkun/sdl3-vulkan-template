@@ -491,7 +491,7 @@ Primitive App::sphere(float r, Uint16 sides, Uint16 slices) {
 	return Primitive { vertices, indices, true };
 }
 
-Primitive hemisphere(float r, Uint16 sides, Uint16 slices) {
+Primitive App::hemisphere(float r, Uint16 sides, Uint16 slices) {
 	std::vector<RenderVertex> vertices;
 	std::vector<Uint16> indices;
 
@@ -499,3 +499,20 @@ Primitive hemisphere(float r, Uint16 sides, Uint16 slices) {
 }
 
 #pragma endregion Primitives
+
+bool App::getMouseBtnClicked(SDL_MouseButtonFlags bitFlags, Uint32 btn) {
+	switch (btn) {
+		case 1:
+			return (bitFlags & SDL_BUTTON_LMASK) == SDL_BUTTON_LMASK;
+		case 2:
+			return (bitFlags & SDL_BUTTON_MMASK) == SDL_BUTTON_MMASK;
+		case 3:
+			return (bitFlags & SDL_BUTTON_RMASK) == SDL_BUTTON_RMASK;
+		case 4:
+			return (bitFlags & SDL_BUTTON_X1MASK) == SDL_BUTTON_X1MASK;
+		case 5:
+			return (bitFlags & SDL_BUTTON_X2MASK) == SDL_BUTTON_X2MASK;
+		default:
+			return false;
+	}
+}

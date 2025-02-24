@@ -33,6 +33,13 @@ SDL_AppResult ObjScene::update(SystemUpdates const &sys) {
     screenSize = sys.winSize;
   }
 
+  if (sys.kbStates[SDL_SCANCODE_LSHIFT]) SDL_Log("Pressing Shift");
+  if (sys.kbStates[SDL_SCANCODE_A]) SDL_Log("Pressing A");
+  if (sys.kbStates[SDL_SCANCODE_S]) SDL_Log("Pressing S");
+
+  if (getMouseBtnClicked(sys.mFlags, SDL_BUTTON_LEFT)) SDL_Log("Pressing lmb");
+  if (getMouseBtnClicked(sys.mFlags, SDL_BUTTON_RIGHT)) SDL_Log("Pressing rmb");
+
   RenderObject &obj1 = objPipe->getObject(0);
   obj1.pos = glm::vec3(
     (sys.winSize.x / 2.0f - sys.mousePosScreenSpace.x) / 10.0f,
