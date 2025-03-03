@@ -25,24 +25,29 @@ void main() {
   float useTx = step(0.001, tx.a);
   vec4 baseColor = mix(albedo, tx, useTx);
 
-  // ambience
-  vec3 ambient = vec3(ambientIntensity * lightColor.rgb);
+  outColor = baseColor;
+  // calculate lighting if provided
+  if (ambientIntensity > 0.0 && specularIntensity > 0.0) {
+    // ambience
+    vec3 ambient = vec3(ambientIntensity * lightColor.rgb);
 
-  // diffuse
-  vec3 n = normalize(normal);
-  vec3 ld = normalize(lightPos - pos);
-  float diffusion = max(dot(n, ld), 0.0);
-  vec3 diffuse = vec3(diffusion * lightColor.rgb);
+    // diffuse
+    vec3 n = normalize(normal);
+    vec3 ld = normalize(lightPos - pos);
+    float diffusion = max(dot(n, ld), 0.0);
+    vec3 diffuse = vec3(diffusion * lightColor.rgb);
 
-  // specular
-  vec3 vd = normalize(cameraPos - pos);
-  vec3 rd = reflect(-ld, n);
-  float spec = pow(max(dot(vd, rd), 0.0), shininess);
-  vec3 specular = specularIntensity * spec * lightColor.rgb;
+    // specular
+    vec3 vd = normalize(cameraPos - pos);
+    vec3 rd = reflect(-ld, n);
+    float spec = pow(max(dot(vd, rd), 0.0), shininess);
+    vec3 specular = specularIntensity * spec * lightColor.rgb;
 
-  // distance attenuation
-  float d = distance(lightPos, pos);
-  float attenuation = clamp((2.0 * lightMaxDist) / (d + lightMaxDist) - 1.0, 0.0, 1.0);
+    // distance attenuation
+    float d = distance(lightPos, pos);
+    float attenuation = clamp((2.0 * lightMaxDist) / (d + lightMaxDist) - 1.0, 0.0, 1.0);
 
-  outColor = vec4((ambient + diffuse + specular) * attenuation * baseColor.xyz, baseColor.a);
+    outColor = vec4((ambient + diffuse + specular) * attenuation * baseColor.xyz, baseColor.a);
+  }
+
 }
