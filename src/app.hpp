@@ -17,6 +17,7 @@ namespace App {
     glm::vec2 mousePosScreenSpace = glm::vec2(0.0f);
     glm::vec2 winSize = glm::vec2(800.0f, 600.0f);
     Uint64 lifetime = 0;
+    float deltaTime = 0.0f;
     const bool *kbStates = NULL;
     SDL_MouseButtonFlags mFlags;
   };

@@ -137,6 +137,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   Uint64 delta = newTime - state.sys.lifetime;
   if (delta < 100001) return SDL_APP_CONTINUE;
   state.sys.lifetime = newTime;
+  state.sys.deltaTime = (float)delta / (float)SDL_NS_PER_SECOND;
   if (state.timeSinceLastFps > (SDL_NS_PER_SECOND / 5)) {
     state.timeSinceLastFps = 0;
     float fps = 0.0f;
