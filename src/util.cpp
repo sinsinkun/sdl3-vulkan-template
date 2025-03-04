@@ -447,14 +447,14 @@ Primitive App::sphere(float r, Uint16 sides, Uint16 slices) {
 	std::vector<Uint16> indices;
 
 	// top point
-	vertices.push_back(RenderVertex{ {0.0f, -r, 0.0f}, {0.5f, 0.5f}, {0.0f,-1.0f, 0.0f} });
+	vertices.push_back(RenderVertex{ {0.0f, r, 0.0f}, {0.5f, 0.5f}, {0.0f, 1.0f, 0.0f} });
 	// add points for each slice
 	for (int i=0; i < slices - 1; i++) {
 		float phi = SDL_PI_F * (float)(i + 1) / (float)slices;
 		for (int j=0; j < sides; j++) {
 			float theta = 2.0f * SDL_PI_F * (float)j / (float)sides;
 			float x = SDL_sinf(phi) * SDL_cosf(theta);
-			float y = -SDL_cosf(phi);
+			float y = SDL_cosf(phi);
 			float z = SDL_sinf(phi) * SDL_sinf(theta);
 			vertices.push_back(RenderVertex{
 				{x * r, y * r, z * r},
@@ -464,15 +464,15 @@ Primitive App::sphere(float r, Uint16 sides, Uint16 slices) {
 		}
 	}
 	// bottom point
-	vertices.push_back(RenderVertex{ {0.0f, r, 0.0f}, {0.5f, 0.5f}, {0.0f, 1.0f, 0.0f} });
+	vertices.push_back(RenderVertex{ {0.0f,-r, 0.0f}, {0.5f, 0.5f}, {0.0f,-1.0f, 0.0f} });
 	// top/bottom indices
 	for (int i=0; i < sides; i++) {
 		Uint16 i0 = i + 1;
 		Uint16 i1 = (i + 1) % sides + 1;
-		indices.push_back(0); indices.push_back(i0); indices.push_back(i1);
+		indices.push_back(0); indices.push_back(i1); indices.push_back(i0);
 		i0 = i + sides * (slices - 2) + 1;
     i1 = (i + 1) % sides + sides * (slices - 2) + 1;
-		indices.push_back(vertices.size() - 1); indices.push_back(i1); indices.push_back(i0); 
+		indices.push_back(vertices.size() - 1); indices.push_back(i0); indices.push_back(i1); 
 	}
 	// slice indices
 	for (int j=0; j < slices - 2; j++) {
@@ -483,8 +483,8 @@ Primitive App::sphere(float r, Uint16 sides, Uint16 slices) {
 			Uint16 i1 = j0 + (i + 1) % sides;
 			Uint16 i2 = j1 + (i + 1) % sides;
 			Uint16 i3 = j1 + i;
-			indices.push_back(i0); indices.push_back(i2); indices.push_back(i1);
-			indices.push_back(i2); indices.push_back(i0); indices.push_back(i3);
+			indices.push_back(i0); indices.push_back(i1); indices.push_back(i2);
+			indices.push_back(i2); indices.push_back(i3); indices.push_back(i0);
 		}
 	}
 
@@ -494,6 +494,63 @@ Primitive App::sphere(float r, Uint16 sides, Uint16 slices) {
 Primitive App::hemisphere(float r, Uint16 sides, Uint16 slices) {
 	std::vector<RenderVertex> vertices;
 	std::vector<Uint16> indices;
+
+	// top point
+	vertices.push_back(RenderVertex{ {0.0f, r, 0.0f}, {0.5f, 0.5f}, {0.0f, 1.0f, 0.0f} });
+	// points per slice
+	for (int i=0; i<slices; i++) {
+		float phi = SDL_PI_F * (float)(i + 1) / (float)(2 * slices);
+		for (int  j=0; j<sides; j++) {
+			float theta = 2.0f * SDL_PI_F * (float)j / (float)sides;
+			float x = SDL_sinf(phi) * SDL_cosf(theta);
+			float y = SDL_cosf(phi);
+			float z = SDL_sinf(phi) * SDL_sinf(theta);
+			vertices.push_back(RenderVertex{
+				{x * r, y * r, z * r},
+				{(1.0f + x) / 2.0f, (1.0f + z) / 2.0f},
+				{x, y, z}
+			});
+		}
+	}
+	// top face index
+	for (int i=0; i<sides; i++) {
+		Uint16 i0 = i + 1;
+		Uint16 i1 = (i + 1) % sides + 1;
+		indices.push_back(0); indices.push_back(i1); indices.push_back(i0);
+	}
+	// slice indices
+	for (int j=0; j < slices-1; j++) {
+		Uint16 j0 = j * sides + 1;
+		Uint16 j1 = (j + 1) * sides + 1;
+		for (int i=0; i < sides; i++) {
+			Uint16 i0 = j0 + i;
+			Uint16 i1 = j0 + (i + 1) % sides;
+			Uint16 i2 = j1 + (i + 1) % sides;
+			Uint16 i3 = j1 + i;
+			indices.push_back(i0); indices.push_back(i1); indices.push_back(i2);
+			indices.push_back(i2); indices.push_back(i3); indices.push_back(i0);
+		}
+	}
+	// generate bottom face
+	int new0 = vertices.size();
+	for (int i=0; i < sides; i++) {
+		float theta = 2.0f * SDL_PI_F * (float)i / (float)sides;
+		float x = SDL_cosf(theta);
+		float z = SDL_sinf(theta);
+		vertices.push_back(RenderVertex{
+			{x * r, 0.0f, z * r},
+			{(1.0 + x) / 2.0f, (1.0 - z) / 2.0f},
+			{0.0f, -1.0f, 0.0f}
+		});
+	}
+	// center point
+	vertices.push_back(RenderVertex{ {0.0f, 0.0f, 0.0f}, {0.5f, 0.5f}, {0.0f, -1.0f, 0.0f} });
+	int c = vertices.size() - 1;
+	// generate bottom face indices
+	for (int i=0; i < sides - 1; i++) {
+		indices.push_back(c); indices.push_back(new0 + i); indices.push_back(new0 + i + 1);
+	}
+	indices.push_back(c); indices.push_back(c - 1); indices.push_back(new0);
 
 	return Primitive { vertices, indices, true };
 }

@@ -11,11 +11,18 @@ ObjScene::ObjScene(SDL_GPUDevice *gpu, SDL_GPUTextureFormat targetFormat) : Scen
     .fovY = degToRad(60.0f),
   });
 
-  int obj1id = objPipe->uploadObject(cube(100.0f, 100.0f, 100.0f));
+  int obj1id = objPipe->uploadObject(hemisphere(100.0f, 16, 12));
   RenderObject &obj1 = objPipe->getObject(obj1id);
   obj1.albedo = CYAN;
   obj1.rotAxis = glm::vec3(0.0f, 1.0f, 0.0f);
   obj1.rotAngleRad = 0.5f;
+
+  int obj2id = objPipe->uploadObject(cube(150.0f, 100.0f, 100.0f));
+  RenderObject &obj2 = objPipe->getObject(obj2id);
+  obj2.albedo = GREEN;
+  obj2.pos = glm::vec3(200.0f, -200.0f, -100.0f);
+  obj2.rotAxis = glm::vec3(0.0f, 1.0f, 0.0f);
+  obj2.rotAngleRad = 0.5f;
 }
 
 SDL_AppResult ObjScene::update(SystemUpdates const &sys) {
