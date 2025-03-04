@@ -57,6 +57,7 @@ namespace App {
     void destroy();
     ObjectPipeline *objPipe = NULL;
     glm::vec2 screenSize = glm::vec2(0.0f);
+    bool usePerspective = true;
   };
   // root app state
   struct AppState {
@@ -65,7 +66,7 @@ namespace App {
     SDL_Surface *winIcon = NULL;
     SystemUpdates sys;
     std::vector<Scene*> scenes;
-    int currentScene = -1;
+    int currentScene = 1;
     // text engine
     TTF_TextEngine *textEngine = NULL;
     TTF_Font *font = NULL;

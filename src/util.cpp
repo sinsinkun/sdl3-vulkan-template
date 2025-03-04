@@ -278,12 +278,12 @@ Primitive App::regPolygon2d(float r, Uint16 sides, float z) {
 		// build slice
 		RenderVertex p1 = RenderVertex {
 			{x0 * r, y0 * r, z},
-			{(1.0f + x0)/2.0f, 1.0f - (1.0f + y0)/2.0f},
+			{(1.0f + x0)/2.0f, (1.0f - y0)/2.0f},
 			{0.0f, 0.0f, 1.0f}
 		};
 		RenderVertex p2 = RenderVertex {
 			{x1 * r, y1 * r, z},
-			{(1.0 + x1)/2.0, 1.0 - (1.0 + y1)/2.0},
+			{(1.0 + x1)/2.0, (1.0 - y1)/2.0},
 			{0.0f, 0.0f, 1.0f}
 		};
 		RenderVertex p3 = RenderVertex {
@@ -310,12 +310,12 @@ Primitive App::torus2d(float outerRadius, float innerRadius, Uint16 sides, float
 		float y = SDL_sinf(theta);
 		RenderVertex v1 {
 			{x * outerRadius, y * outerRadius, z},
-			{(1.0f + x)/2.0f, (1.0f + y)/2.0f},
+			{(1.0f + x)/2.0f, (1.0f - y)/2.0f},
 			{0.0f, 0.0f, 1.0f}
 		};
 		RenderVertex v2 {
 			{x * innerRadius, y * innerRadius, z},
-			{(1.0f + dr * x) / 2.0f, (1.0f + dr * y) / 2.0f},
+			{(1.0f + dr * x) / 2.0f, (1.0f - dr * y) / 2.0f},
 			{0.0f, 0.0f, 1.0f}
 		};
 		vertices.push_back(v1);
@@ -347,41 +347,41 @@ Primitive App::cube(float w, float h, float d) {
 	std::vector<RenderVertex> vertices;
 	w = w / 2.0f; h = h / 2.0f; d = d / 2.0f;
 	// front
-	vertices.push_back(RenderVertex{ {-w,-h,-d}, {0.0f, 0.0f}, {0.0f, 0.0f,-1.0f} });
-	vertices.push_back(RenderVertex{ {-w, h,-d}, {1.0f, 0.0f}, {0.0f, 0.0f,-1.0f} });
-	vertices.push_back(RenderVertex{ { w, h,-d}, {1.0f, 1.0f}, {0.0f, 0.0f,-1.0f} });
-	vertices.push_back(RenderVertex{ { w,-h,-d}, {0.0f, 1.0f}, {0.0f, 0.0f,-1.0f} });
-	// back
-	vertices.push_back(RenderVertex{ {-w,-h, d}, {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f} });
 	vertices.push_back(RenderVertex{ {-w, h, d}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f} });
-	vertices.push_back(RenderVertex{ { w, h, d}, {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f} });
+	vertices.push_back(RenderVertex{ {-w,-h, d}, {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f} });
 	vertices.push_back(RenderVertex{ { w,-h, d}, {1.0f, 1.0f}, {0.0f, 0.0f, 1.0f} });
+	vertices.push_back(RenderVertex{ { w, h, d}, {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f} });
+	// back
+	vertices.push_back(RenderVertex{ {-w, h,-d}, {1.0f, 0.0f}, {0.0f, 0.0f,-1.0f} });
+	vertices.push_back(RenderVertex{ {-w,-h,-d}, {1.0f, 1.0f}, {0.0f, 0.0f,-1.0f} });
+	vertices.push_back(RenderVertex{ { w,-h,-d}, {0.0f, 1.0f}, {0.0f, 0.0f,-1.0f} });
+	vertices.push_back(RenderVertex{ { w, h,-d}, {0.0f, 0.0f}, {0.0f, 0.0f,-1.0f} });
 	// top
+	vertices.push_back(RenderVertex{ {-w, h,-d}, {0.0f, 0.0f}, {0.0f, 1.0f, 0.0f} });
+	vertices.push_back(RenderVertex{ { w, h,-d}, {1.0f, 0.0f}, {0.0f, 1.0f, 0.0f} });
+	vertices.push_back(RenderVertex{ {-w, h, d}, {0.0f, 1.0f}, {0.0f, 1.0f, 0.0f} });
+	vertices.push_back(RenderVertex{ { w, h, d}, {1.0f, 1.0f}, {0.0f, 1.0f, 0.0f} });
+	// bottom
 	vertices.push_back(RenderVertex{ {-w,-h,-d}, {0.0f, 1.0f}, {0.0f,-1.0f, 0.0f} });
 	vertices.push_back(RenderVertex{ { w,-h,-d}, {1.0f, 1.0f}, {0.0f,-1.0f, 0.0f} });
 	vertices.push_back(RenderVertex{ {-w,-h, d}, {0.0f, 0.0f}, {0.0f,-1.0f, 0.0f} });
 	vertices.push_back(RenderVertex{ { w,-h, d}, {1.0f, 0.0f}, {0.0f,-1.0f, 0.0f} });
-	// bottom
-	vertices.push_back(RenderVertex{ {-w, h,-d}, {0.0f, 0.0f}, {0.0f, 1.0f, 0.0f} });
-	vertices.push_back(RenderVertex{ { w, h,-d}, {0.0f, 1.0f}, {0.0f, 1.0f, 0.0f} });
-	vertices.push_back(RenderVertex{ {-w, h, d}, {1.0f, 0.0f}, {0.0f, 1.0f, 0.0f} });
-	vertices.push_back(RenderVertex{ { w, h, d}, {1.0f, 1.0f}, {0.0f, 1.0f, 0.0f} });
 	// left
-	vertices.push_back(RenderVertex{ {-w,-h,-d}, {1.0f, 0.0f}, {-1.0f, 0.0f, 0.0f} });
-	vertices.push_back(RenderVertex{ {-w, h,-d}, {1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f} });
-	vertices.push_back(RenderVertex{ {-w,-h, d}, {0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f} });
-	vertices.push_back(RenderVertex{ {-w, h, d}, {0.0f, 1.0f}, {-1.0f, 0.0f, 0.0f} });
+	vertices.push_back(RenderVertex{ {-w,-h,-d}, {0.0f, 1.0f}, {-1.0f, 0.0f, 0.0f} });
+	vertices.push_back(RenderVertex{ {-w, h,-d}, {0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f} });
+	vertices.push_back(RenderVertex{ {-w,-h, d}, {1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f} });
+	vertices.push_back(RenderVertex{ {-w, h, d}, {1.0f, 0.0f}, {-1.0f, 0.0f, 0.0f} });
 	// right
-	vertices.push_back(RenderVertex{ { w,-h,-d}, {0.0f, 0.0f}, {1.0f, 0.0f, 0.0f} });
-	vertices.push_back(RenderVertex{ { w, h,-d}, {0.0f, 1.0f}, {1.0f, 0.0f, 0.0f} });
-	vertices.push_back(RenderVertex{ { w,-h, d}, {1.0f, 0.0f}, {1.0f, 0.0f, 0.0f} });
-	vertices.push_back(RenderVertex{ { w, h, d}, {1.0f, 1.0f}, {1.0f, 0.0f, 0.0f} });
+	vertices.push_back(RenderVertex{ { w,-h,-d}, {1.0f, 1.0f}, {1.0f, 0.0f, 0.0f} });
+	vertices.push_back(RenderVertex{ { w, h,-d}, {1.0f, 0.0f}, {1.0f, 0.0f, 0.0f} });
+	vertices.push_back(RenderVertex{ { w,-h, d}, {0.0f, 1.0f}, {1.0f, 0.0f, 0.0f} });
+	vertices.push_back(RenderVertex{ { w, h, d}, {0.0f, 0.0f}, {1.0f, 0.0f, 0.0f} });
 	
 	std::vector<Uint16> indices = {
 		0,1,2, 0,2,3,
-		4,6,5, 4,7,6,
-		8,9,10, 9,11,10,
-		12,14,13, 14,15,13,
+		7,6,5, 7,5,4,
+		8,10,9, 9,10,11,
+		12,13,14, 14,13,15,
 		18,19,16, 19,17,16,
 		20,21,22, 21,23,22
 	};
