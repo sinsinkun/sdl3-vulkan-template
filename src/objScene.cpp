@@ -57,13 +57,16 @@ SDL_AppResult ObjScene::update(SystemUpdates const &sys) {
   if (sys.kbStates[SDL_SCANCODE_Q]) obj1.pos.z += 100.0f * sys.deltaTime;
   if (sys.kbStates[SDL_SCANCODE_E]) obj1.pos.z -= 100.0f * sys.deltaTime;
 
-  if (sys.kbStates[SDL_SCANCODE_SPACE]) SDL_Log("pos: (%f, %f, %f)", obj1.pos.x, obj1.pos.y, obj1.pos.z);
-
   return SDL_APP_CONTINUE;
 }
 
 SDL_AppResult ObjScene::render(SDL_GPUCommandBuffer *cmdBuf, SDL_GPUTexture* screen) {
-  objPipe->render(cmdBuf, screen, LightMaterial {});
+  objPipe->render(cmdBuf, screen, LightMaterial {
+    .lightColor = rgba(200, 200, 200, 255),
+    .lightPos = glm::vec3(0.0f, 100.0f, 400.0f),
+    .ambientIntensity = 0.2f,
+    .specularIntensity = 0.8f,
+  });
   return SDL_APP_CONTINUE;
 }
 
