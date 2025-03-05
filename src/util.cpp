@@ -439,6 +439,89 @@ Primitive App::tube(float outerRadius, float innerRadius, float h, Uint16 sides)
 	std::vector<RenderVertex> vertices;
 	std::vector<Uint16> indices;
 
+	float dr = innerRadius / outerRadius;
+	h = h / 2.0f;
+
+	// build top/bottom
+	for (int i=0; i < sides; i++) {
+		float theta = 2.0f * SDL_PI_F * (float)i / (float)sides;
+		float x = SDL_cosf(theta);
+		float z = SDL_sinf(theta);
+		vertices.push_back(RenderVertex{
+			{x * outerRadius, h, z * outerRadius},
+			{(1.0f + x)/2.0f, (1.0f + z)/2.0f},
+			{0.0f, 1.0f, 0.0f}
+		});
+		vertices.push_back(RenderVertex{
+			{x * outerRadius, -h, z * outerRadius},
+			{(1.0f + x)/2.0f, (1.0f + z)/2.0f},
+			{0.0f,-1.0f, 0.0f}
+		});
+		vertices.push_back(RenderVertex{
+			{x * innerRadius, h, z * innerRadius},
+			{(1.0f + dr * x)/2.0f, (1.0f + dr * z)/2.0f},
+			{0.0f, 1.0f, 0.0f}
+		});
+		vertices.push_back(RenderVertex{
+			{x * innerRadius, -h, z * innerRadius},
+			{(1.0f + dr * x)/2.0f, (1.0f + dr * z)/2.0f},
+			{0.0f,-1.0f, 0.0f}
+		});
+	}
+	// index top/bottom
+	for (int i=0; i < vertices.size() - 5; i += 2) {
+		if (i % 4 == 0) {
+			indices.push_back(i); indices.push_back(i + 2); indices.push_back(i + 4);
+			indices.push_back(i + 3); indices.push_back(i + 1); indices.push_back(i + 5);
+		} else {
+			indices.push_back(i + 2); indices.push_back(i); indices.push_back(i + 4);
+			indices.push_back(i + 1); indices.push_back(i + 3); indices.push_back(i + 5);
+		}
+	}
+	// join back to first 2 vertices
+	int vs = vertices.size();
+	indices.push_back(vs - 4); indices.push_back(vs - 2); indices.push_back(0);
+	indices.push_back(0); indices.push_back(vs - 2); indices.push_back(2);
+	indices.push_back(vs - 1); indices.push_back(vs - 3); indices.push_back(1);
+	indices.push_back(vs - 1); indices.push_back(1); indices.push_back(3);
+
+	// build sides
+	for (int i=0; i < sides + 1; i++) {
+		float theta = 2.0f * SDL_PI_F * (float)i / (float)sides;
+		float x = SDL_cosf(theta);
+		float z = SDL_sinf(theta);
+		vertices.push_back(RenderVertex{
+			{x * outerRadius, h, z * outerRadius},
+			{(float)i/(float)sides, 1.0f},
+			{x, 0.0f, z}
+		});
+		vertices.push_back(RenderVertex{
+			{x * innerRadius, h, z * innerRadius},
+			{(float)i/(float)sides, 1.0f},
+			{x, 0.0f, z}
+		});
+		vertices.push_back(RenderVertex{
+			{x * outerRadius, -h, z * outerRadius},
+			{(float)i/(float)sides, 0.0f},
+			{x, 0.0f, z}
+		});
+		vertices.push_back(RenderVertex{
+			{x * innerRadius, -h, z * innerRadius},
+			{(float)i/(float)sides, 0.0f},
+			{x, 0.0f, z}
+		});
+	}
+	// index sides
+	for (int i=vs; i < vertices.size() - 4; i += 2) {
+		if (i % 4 == 0) {
+			indices.push_back(i + 2); indices.push_back(i); indices.push_back(i + 4);
+			indices.push_back(i + 1); indices.push_back(i + 3); indices.push_back(i + 5);
+		} else {
+			indices.push_back(i); indices.push_back(i + 2); indices.push_back(i + 4);
+			indices.push_back(i + 3); indices.push_back(i + 1); indices.push_back(i + 5);
+		}
+	}
+
 	return Primitive { vertices, indices, true };
 }
 

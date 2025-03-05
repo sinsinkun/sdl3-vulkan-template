@@ -25,7 +25,7 @@ void main() {
   float useTx = step(0.001, tx.a);
   vec4 baseColor = mix(albedo, tx, useTx);
 
-  outColor = vec4(uv, 0.5, 1.0);
+  outColor = baseColor;
   // calculate lighting if provided
   if (ambientIntensity > 0.0 && specularIntensity > 0.0) {
     // ambience

@@ -348,11 +348,11 @@ glm::mat4x4 projMatrix(RenderCamera const &cam) {
     0.0f, 0.0f, 0.5f, 1.0f
   );
   if (cam.perspective) {
-    return vulkanCoords * glm::perspective(cam.fovY, cam.viewWidth / cam.viewHeight, cam.near, cam.far);
+    return glm::perspective(cam.fovY, cam.viewWidth / cam.viewHeight, cam.near, cam.far);
   } else {
     float hw = cam.viewWidth / 2.0f;
     float hh = cam.viewHeight / 2.0f;
-    return vulkanCoords * glm::ortho(-hw, hw, -hh, hh, cam.near, cam.far);
+    return glm::ortho(-hw, hw, -hh, hh, cam.near, cam.far);
   }
 }
 

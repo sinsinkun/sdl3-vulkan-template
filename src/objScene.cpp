@@ -3,7 +3,7 @@
 using namespace App;
 
 ObjScene::ObjScene(SDL_GPUDevice *gpu, SDL_GPUTextureFormat targetFormat) : Scene() {
-  objPipe = new ObjectPipeline(targetFormat, gpu, PT_Tri, SDL_GPU_CULLMODE_NONE, 800, 600);
+  objPipe = new ObjectPipeline(targetFormat, gpu, PT_Tri, SDL_GPU_CULLMODE_BACK, 800, 600);
   objPipe->updateCamera(RenderCamera {
     .perspective = true,
     .viewWidth = 800.0f,
@@ -11,7 +11,7 @@ ObjScene::ObjScene(SDL_GPUDevice *gpu, SDL_GPUTextureFormat targetFormat) : Scen
     .fovY = degToRad(60.0f),
   });
 
-  int obj1id = objPipe->uploadObject(hemisphere(100.0f, 16, 12));
+  int obj1id = objPipe->uploadObject(tube(80.0f, 40.0f, 100.0f, 18));
   RenderObject &obj1 = objPipe->getObject(obj1id);
   obj1.albedo = CYAN;
   obj1.rotAxis = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -43,8 +43,15 @@ SDL_AppResult ObjScene::update(SystemUpdates const &sys) {
   if (getMouseBtnClicked(sys.mFlags, SDL_BUTTON_RIGHT)) usePerspective = false;
 
   RenderObject &obj1 = objPipe->getObject(0);
-  if (sys.kbStates[SDL_SCANCODE_LEFT] || sys.kbStates[SDL_SCANCODE_A]) obj1.pos.x -= 100.0f * sys.deltaTime;
-  if (sys.kbStates[SDL_SCANCODE_RIGHT] || sys.kbStates[SDL_SCANCODE_D]) obj1.pos.x += 100.0f * sys.deltaTime;
+  RenderObject &obj2 = objPipe->getObject(1);
+  if (sys.kbStates[SDL_SCANCODE_LEFT] || sys.kbStates[SDL_SCANCODE_A]) {
+    obj1.pos.x -= 100.0f * sys.deltaTime;
+    obj2.rotAngleRad -= 2.0f * sys.deltaTime;
+  }
+  if (sys.kbStates[SDL_SCANCODE_RIGHT] || sys.kbStates[SDL_SCANCODE_D]) {
+    obj1.pos.x += 100.0f * sys.deltaTime;
+    obj2.rotAngleRad += 2.0f * sys.deltaTime;
+  }
   if (sys.kbStates[SDL_SCANCODE_UP] || sys.kbStates[SDL_SCANCODE_W]) obj1.pos.y += 100.0f * sys.deltaTime;
   if (sys.kbStates[SDL_SCANCODE_DOWN] || sys.kbStates[SDL_SCANCODE_S]) obj1.pos.y -= 100.0f * sys.deltaTime;
   if (sys.kbStates[SDL_SCANCODE_Q]) obj1.pos.z += 100.0f * sys.deltaTime;
