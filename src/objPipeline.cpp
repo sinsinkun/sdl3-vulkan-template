@@ -297,26 +297,13 @@ int ObjectPipeline::uploadObject(Primitive const &shape) {
   return uploadObject(shape.vertices);
 }
 
-void ObjectPipeline::addTextureToObject(int id, SDL_GPUTextureFormat txFormat, Uint32 w, Uint32 h, bool isRenderTarget) {
+void ObjectPipeline::addTextureToObject(int id, SDL_GPUTexture *texture) {
   if (id >= robjs.size()) {
     SDL_Log("ERR: Tried to access render object that doesn't exist %d", id);
     return;
   }
   SDL_ReleaseGPUTexture(device, robjs.at(id).texture);
-  SDL_GPUTextureUsageFlags usage = SDL_GPU_TEXTUREUSAGE_SAMPLER;
-  if (isRenderTarget) {
-    usage = SDL_GPU_TEXTUREUSAGE_SAMPLER | SDL_GPU_TEXTUREUSAGE_COLOR_TARGET;
-  }
-  // todo: handle uploading static image
-  robjs.at(id).texture = SDL_CreateGPUTexture(device, new SDL_GPUTextureCreateInfo {
-    .type = SDL_GPU_TEXTURETYPE_2D,
-    .format = txFormat,
-    .usage = usage,
-    .width = w,
-    .height = h,
-    .layer_count_or_depth = 1,
-    .num_levels = 1,
-  });
+  robjs.at(id).texture = texture;
 }
 
 RenderObject& ObjectPipeline::getObject(int id) {
