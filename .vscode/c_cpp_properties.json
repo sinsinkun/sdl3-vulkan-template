@@ -5,8 +5,7 @@
             "includePath": [
                 "${default}",
                 "C:/msys64/ucrt64/include",
-                "C:/Programs/SDL3/include",
-                "C:/Programs/SDL3_ttf/include"
+                "C:/Programs/SDL3/include"
             ],
             "defines": [
                 "_DEBUG",
@@ -16,7 +15,7 @@
             "windowsSdkVersion": "10.0.22621.0",
             "cStandard": "c17",
             "cppStandard": "c++17",
-            "intelliSenseMode": "windows-msvc-x64"
+            "intelliSenseMode": "windows-gcc-x64"
         }
     ],
     "version": 4
