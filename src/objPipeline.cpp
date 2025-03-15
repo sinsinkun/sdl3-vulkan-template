@@ -327,13 +327,6 @@ glm::mat4x4 viewMatrix(RenderCamera const &cam) {
 }
 
 glm::mat4x4 projMatrix(RenderCamera const &cam) {
-  // convert openGL coords to vulkan coords
-  glm::mat4x4 vulkanCoords(
-    1.0f, 0.0f, 0.0f, 0.0f,
-    0.0f,-1.0f, 0.0f, 0.0f,
-    0.0f, 0.0f, 0.5f, 0.0f,
-    0.0f, 0.0f, 0.5f, 1.0f
-  );
   if (cam.perspective) {
     return glm::perspective(cam.fovY, cam.viewWidth / cam.viewHeight, cam.near, cam.far);
   } else {

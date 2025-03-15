@@ -259,10 +259,10 @@ Primitive App::rect2d(float w, float h, float z) {
 	w = w / 2.0f;
   h = h / 2.0f;
 	std::vector<RenderVertex> vertices;
-	vertices.push_back(RenderVertex{ {-w, h, z}, {0.0f, 0.0f}, {0.0f, 1.0f, 1.0f} });
-	vertices.push_back(RenderVertex{ { w, h, z}, {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f} });
-	vertices.push_back(RenderVertex{ { w,-h, z}, {1.0f, 1.0f}, {0.0f, 0.0f, 1.0f} });
+	vertices.push_back(RenderVertex{ {-w, h, z}, {0.0f, 0.0f}, {0.0f, 0.0f, 1.0f} });
 	vertices.push_back(RenderVertex{ {-w,-h, z}, {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f} });
+	vertices.push_back(RenderVertex{ { w,-h, z}, {1.0f, 1.0f}, {0.0f, 0.0f, 1.0f} });
+	vertices.push_back(RenderVertex{ { w, h, z}, {1.0f, 0.0f}, {0.0f, 0.0f, 1.0f} });
 	std::vector<Uint16> indices = { 0, 1, 2, 0, 2, 3 };
 	return Primitive { vertices, indices, true };
 }
