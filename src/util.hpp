@@ -31,7 +31,7 @@ namespace App {
   struct RenderCamera {
     glm::vec3 pos = glm::vec3(0.0f, 0.0f, 500.0f);
     glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-    glm::vec3 lookAt = glm::vec3(0.0f, 0.0f,-1.0f);
+    glm::vec3 lookAt = glm::vec3(0.0f, 0.0f, 0.0f);
     bool perspective = false;
     float near = 1.0f;
     float far = 1000.0f;
