@@ -35,12 +35,11 @@ namespace App {
     int uploadObject(Primitive const &shape);
     void addTextureToObject(int id, SDL_GPUTexture *texture);
     RenderObject& getObject(int id);
-    void updateCamera(RenderCamera cam);
     void render(SDL_GPUCommandBuffer *cmdBuf, SDL_GPUTexture* target, LightMaterial const &light);
     void clearObjects();
     void destroy();
-  private:
     RenderCamera cam;
+  private:
     std::vector<RenderObject> robjs;
     SDL_GPUDevice *device = NULL;
     SDL_GPUGraphicsPipeline *pipeline = NULL;

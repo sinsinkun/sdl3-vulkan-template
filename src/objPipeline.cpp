@@ -84,6 +84,8 @@ void ObjectPipeline::resizeScreen(Uint32 w, Uint32 h) {
     .layer_count_or_depth = 1,
     .num_levels = 1,
   });
+  cam.viewWidth = (float)w;
+  cam.viewHeight = (float)h;
 }
 
 int ObjectPipeline::uploadObject(std::vector<RenderVertex> const &vertices) {
@@ -308,10 +310,6 @@ void ObjectPipeline::addTextureToObject(int id, SDL_GPUTexture *texture) {
 
 RenderObject& ObjectPipeline::getObject(int id) {
   return robjs.at(id);
-}
-
-void ObjectPipeline::updateCamera(RenderCamera cam) {
-  this->cam = cam;
 }
 
 glm::mat4x4 modelMatrix(RenderObject const &obj) {

@@ -4,12 +4,12 @@ using namespace App;
 
 ObjScene::ObjScene(SDL_GPUDevice *gpu, SDL_GPUTextureFormat targetFormat) : Scene() {
   objPipe = new ObjectPipeline(targetFormat, gpu, PT_Tri, SDL_GPU_CULLMODE_BACK, 800, 600);
-  objPipe->updateCamera(RenderCamera {
+  objPipe->cam = RenderCamera {
     .perspective = true,
     .viewWidth = 800.0f,
     .viewHeight = 600.0f,
     .fovY = degToRad(60.0f),
-  });
+  };
 
   int obj1id = objPipe->uploadObject(tube(80.0f, 40.0f, 100.0f, 18));
   RenderObject &obj1 = objPipe->getObject(obj1id);
@@ -32,12 +32,7 @@ SDL_AppResult ObjScene::update(SystemUpdates const &sys) {
     objPipe->resizeScreen((Uint32)sys.winSize.x, (Uint32)sys.winSize.y);
     screenSize = sys.winSize;
   }
-  objPipe->updateCamera(RenderCamera {
-    .perspective = usePerspective,
-    .viewWidth = sys.winSize.x,
-    .viewHeight = sys.winSize.y,
-    .fovY = degToRad(60.0f),
-  });
+  objPipe->cam.perspective = usePerspective;
 
   if (getMouseBtnClicked(sys.mFlags, SDL_BUTTON_LEFT)) usePerspective = true;
   if (getMouseBtnClicked(sys.mFlags, SDL_BUTTON_RIGHT)) usePerspective = false;
@@ -56,6 +51,14 @@ SDL_AppResult ObjScene::update(SystemUpdates const &sys) {
   if (sys.kbStates[SDL_SCANCODE_DOWN] || sys.kbStates[SDL_SCANCODE_S]) obj1.pos.y -= 100.0f * sys.deltaTime;
   if (sys.kbStates[SDL_SCANCODE_Q]) obj1.pos.z += 100.0f * sys.deltaTime;
   if (sys.kbStates[SDL_SCANCODE_E]) obj1.pos.z -= 100.0f * sys.deltaTime;
+  if (sys.kbStates[SDL_SCANCODE_J]) {
+    objPipe->cam.pos.x -= 100.0f * sys.deltaTime;
+    objPipe->cam.lookAt.x -= 100.0f * sys.deltaTime;
+  }
+  if (sys.kbStates[SDL_SCANCODE_L]) {
+    objPipe->cam.pos.x += 100.0f * sys.deltaTime;
+    objPipe->cam.lookAt.x += 100.0f * sys.deltaTime;
+  }
 
   return SDL_APP_CONTINUE;
 }
