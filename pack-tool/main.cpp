@@ -38,8 +38,8 @@ int main(int argc, char* argv[]) {
   }
 
   // generate output
-  SDL_Log("Writing to .dat file");
-  SDL_IOStream *output = SDL_IOFromFile("assets.dat", "wb");
+  SDL_Log("Writing to .pak file");
+  SDL_IOStream *output = SDL_IOFromFile("build/assets.pak", "wb");
   if (output == NULL) {
     SDL_Log("Failed to create output file: %s", SDL_GetError());
     closeFiles(inputs);
@@ -57,16 +57,26 @@ int main(int argc, char* argv[]) {
   SDL_Log("Packed metadata: %d/%d", writeSize, sizeof(meta));
 
   // write actual data
+  char buffer[1024];
+  size_t bytesRead = 0;
+  size_t bytesWritten = 0;
+  int counter = 0;
   for (int i=0; i<inputs.size(); i++) {
-
-    writeSize = SDL_WriteIO(output, inputs[i], meta[i].size);
-    if (writeSize != meta[i].size) {
-      SDL_Log("Failed to write to output file: %d/%d\n -> %s", writeSize, meta[i].size, SDL_GetError());
-      closeFiles(inputs);
-      SDL_CloseIO(output);
-      return 4;
+    bytesRead = SDL_ReadIO(inputs[i], buffer, sizeof(buffer));
+    while (bytesRead > 0) {
+      bytesWritten = SDL_WriteIO(output, buffer, bytesRead);
+      if (bytesRead != bytesWritten) {
+        SDL_Log("Failed to write to output file: %d/%d\n -> %s", bytesWritten, meta[i].size, SDL_GetError());
+        closeFiles(inputs);
+        SDL_CloseIO(output);
+      }
+      bytesRead = SDL_ReadIO(inputs[i], buffer, sizeof(buffer));
+      counter++;
     }
-    SDL_Log("Packed file (%s): %d/%d", files[i].c_str(), writeSize, meta[i].size);
+    SDL_Log("Packed file (%s): %d/%d - %d iterations", files[i].c_str(), bytesWritten, meta[i].size, counter);
+    bytesRead = 0;
+    bytesWritten = 0;
+    counter = 0;
   }
 
   // clean up
