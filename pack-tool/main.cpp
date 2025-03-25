@@ -57,11 +57,12 @@ int main(int argc, char* argv[]) {
   SDL_Log("Packed metadata: %d/%d", writeSize, sizeof(meta));
 
   // write actual data
-  char buffer[1024];
+  char buffer[10240];
   size_t bytesRead = 0;
   size_t bytesWritten = 0;
   int counter = 0;
   for (int i=0; i<inputs.size(); i++) {
+    // copy data 10kb at a time to bypass SDL_WriteIO size limitations
     bytesRead = SDL_ReadIO(inputs[i], buffer, sizeof(buffer));
     while (bytesRead > 0) {
       bytesWritten = SDL_WriteIO(output, buffer, bytesRead);
