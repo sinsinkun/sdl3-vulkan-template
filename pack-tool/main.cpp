@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
   SDL_Log("Opening files");
 
   std::vector<std::string> files = { "assets/icon.png", "assets/Helvetica.ttf" };
-  std::vector<MetaData> meta;
+  MetaData meta[files.size()];
   std::vector<SDL_IOStream*> inputs;
 
   // open up files
@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
     Sint64 fileSize = SDL_GetIOSize(file);
     id++;
     MetaData metadata = { id, fileSize };
-    meta.push_back(metadata);
+    meta[id - 1] = metadata;
     inputs.push_back(file);
   }
 

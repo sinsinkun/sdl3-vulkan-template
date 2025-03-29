@@ -66,6 +66,33 @@ SDL_AppResult setupSDL(AppState& state) {
   return SDL_APP_CONTINUE;
 }
 
+// asset helper
+struct AssetMeta {
+  Uint16 id = 0;
+  Sint64 size = -1;
+};
+
+void unpackAssets(AppState& state) {
+  SDL_IOStream *assets = SDL_IOFromFile("build/assets.pak", "rb");
+  if (assets == NULL) {
+    SDL_Log("Could not read metadata for assets\n%s", SDL_GetError());
+    return;
+  }
+  SDL_Log("Opened assets file: %d", SDL_GetIOSize(assets));
+  AssetMeta assetMetas[2];
+  size_t metaSize = SDL_ReadIO(assets, &assetMetas, sizeof(assetMetas));
+  if (metaSize != sizeof(assetMetas)) {
+    SDL_Log("Could not read metadata for assets\n%s", SDL_GetError());
+    SDL_CloseIO(assets);
+    return;
+  } else {
+    SDL_Log("Opened assets.pak");
+    SDL_Log("Asset %d size - %d", assetMetas[0].id, assetMetas[0].size);
+    SDL_Log("Asset %d size - %d", assetMetas[1].id, assetMetas[1].size);
+  }
+  // signal error??
+}
+
 // initialization of app
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   *appstate = new AppState;
@@ -222,5 +249,6 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result) {
   SDL_DestroyGPUDevice(state.gpu);
   SDL_DestroySurface(state.winIcon);
   SDL_DestroyWindow(state.window);
+
   SDL_Quit();
 }
